@@ -24,8 +24,10 @@ const parseCsvDates = (raw: string) =>
 const parseCsvNumbers = (raw: string) =>
   raw
     .split(',')
-    .map((s) => Number(s.trim()))
-    .filter((n) => Number.isInteger(n))
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0)
+    .map((s) => Number(s))
+    .filter((n) => Number.isInteger(n) && n > 0)
 
 export type AppController = {
   state: AppControllerState

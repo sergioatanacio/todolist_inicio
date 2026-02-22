@@ -3,17 +3,15 @@ import { useAppController } from './ui/hooks/useAppController'
 import { AppShell } from './ui/layout/AppShell'
 import { AppSidebar } from './ui/layout/AppSidebar'
 import { LandingView } from './ui/landing/LandingView'
-import {
-  AvailabilityCalendarScreen,
-  DisponibilidadesScreen,
-  KanbanScreen,
-  ListsScreen,
-  ProjectCalendarScreen,
-  ProjectOverviewScreen,
-  SegmentsScreen,
-  WorkspacesScreen,
-  WorkspaceProjectsScreen,
-} from './ui/screens/AppScreens'
+import { WorkspacesScreen } from './ui/features/workspaces/WorkspacesScreen'
+import { WorkspaceProjectsScreen } from './ui/features/projects/WorkspaceProjectsScreen'
+import { ProjectOverviewScreen } from './ui/features/projects/ProjectOverviewScreen'
+import { DisponibilidadesScreen } from './ui/features/disponibilidad/DisponibilidadesScreen'
+import { SegmentsScreen } from './ui/features/disponibilidad/SegmentsScreen'
+import { ListsScreen } from './ui/features/lists/ListsScreen'
+import { KanbanScreen } from './ui/features/kanban/KanbanScreen'
+import { ProjectCalendarScreen } from './ui/features/calendars/ProjectCalendarScreen'
+import { AvailabilityCalendarScreen } from './ui/features/calendars/AvailabilityCalendarScreen'
 
 function App() {
   const { state, forms, setForms, actions } = useAppController()
