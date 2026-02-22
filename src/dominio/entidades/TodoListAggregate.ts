@@ -1,10 +1,19 @@
+import { domainError } from '../errores/DomainError'
 import { TodoListDescription } from '../valores_objeto/TodoListDescription'
 import { TodoListName } from '../valores_objeto/TodoListName'
 
 const normalizeDisponibilidadId = (raw: string) => {
   const normalized = raw.trim()
   if (normalized.length < 1) {
-    throw new Error('El id de disponibilidad es obligatorio')
+    throw domainError('VALIDATION_ERROR', 'El id de disponibilidad es obligatorio')
+  }
+  return normalized
+}
+
+const normalizeProjectId = (raw: string) => {
+  const normalized = raw.trim()
+  if (normalized.length < 1) {
+    throw domainError('VALIDATION_ERROR', 'El id de proyecto es obligatorio')
   }
   return normalized
 }
@@ -50,7 +59,7 @@ export class TodoListAggregate {
   ) {
     return new TodoListAggregate({
       id: crypto.randomUUID(),
-      projectId,
+      projectId: normalizeProjectId(projectId),
       disponibilidadId: normalizeDisponibilidadId(disponibilidadId),
       name: TodoListName.create(rawName),
       description: TodoListDescription.create(rawDescription),
@@ -61,7 +70,7 @@ export class TodoListAggregate {
   static rehydrate(data: TodoListPrimitives) {
     return new TodoListAggregate({
       id: data.id,
-      projectId: data.projectId,
+      projectId: normalizeProjectId(data.projectId),
       disponibilidadId: normalizeDisponibilidadId(data.disponibilidadId),
       name: TodoListName.create(data.name),
       description: TodoListDescription.create(data.description),

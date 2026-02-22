@@ -1,3 +1,8 @@
+import { domainError } from '../errores/DomainError'
+import {
+  type AvailabilityDomainEvent,
+  availabilityEvents,
+} from '../eventos/AvailabilityEvents'
 import { DateRange } from '../valores_objeto/DateRange'
 import { DayOfMonthSet } from '../valores_objeto/DayOfMonthSet'
 import { DayOfWeekSet } from '../valores_objeto/DayOfWeekSet'
@@ -19,6 +24,7 @@ type DisponibilidadPrimitives = {
   startDate: string
   endDate: string
   segments: SegmentoHorarioPrimitives[]
+  domainEvents?: AvailabilityDomainEvent[]
   createdAt: number
 }
 
@@ -33,10 +39,10 @@ const MINUTE_MS = 60 * 1000
 const parseIsoDate = (raw: string): Date => {
   const date = new Date(`${raw}T00:00:00.000Z`)
   if (Number.isNaN(date.getTime())) {
-    throw new Error('Fecha invalida')
+    throw domainError('VALIDATION_ERROR', 'Fecha invalida')
   }
   if (date.toISOString().slice(0, 10) !== raw) {
-    throw new Error('Fecha invalida')
+    throw domainError('VALIDATION_ERROR', 'Fecha invalida')
   }
   return date
 }
@@ -95,7 +101,10 @@ class SegmentoHorario {
       daysOfWeek.toArray().length > 0 ||
       daysOfMonth.toArray().length > 0
     if (!hasRule) {
-      throw new Error('Un segmento debe tener al menos una regla de aplicacion')
+      throw domainError(
+        'VALIDATION_ERROR',
+        'Un segmento debe tener al menos una regla de aplicacion',
+      )
     }
     return new SegmentoHorario({
       id: data.id,
@@ -168,6 +177,7 @@ export class DisponibilidadAggregate {
   private readonly _workspaceId: string
   private readonly _dateRange: DateRange
   private readonly _segments: readonly SegmentoHorario[]
+  private readonly _domainEvents: readonly AvailabilityDomainEvent[]
   private readonly _createdAt: number
 
   private constructor(data: {
@@ -175,12 +185,14 @@ export class DisponibilidadAggregate {
     workspaceId: string
     dateRange: DateRange
     segments: readonly SegmentoHorario[]
+    domainEvents: readonly AvailabilityDomainEvent[]
     createdAt: number
   }) {
     this._id = data.id
     this._workspaceId = data.workspaceId
     this._dateRange = data.dateRange
     this._segments = data.segments
+    this._domainEvents = data.domainEvents
     this._createdAt = data.createdAt
   }
 
@@ -196,13 +208,20 @@ export class DisponibilidadAggregate {
       daysOfMonth?: number[]
     }>
   }) {
+    const id = crypto.randomUUID()
     return new DisponibilidadAggregate({
-      id: crypto.randomUUID(),
+      id,
       workspaceId: data.workspaceId,
       dateRange: DateRange.create(data.startDate, data.endDate),
       segments: (data.segments ?? []).map((segment) =>
         SegmentoHorario.create(segment),
       ),
+      domainEvents: [
+        availabilityEvents.created({
+          disponibilidadId: id,
+          workspaceId: data.workspaceId,
+        }),
+      ],
       createdAt: Date.now(),
     })
   }
@@ -213,17 +232,22 @@ export class DisponibilidadAggregate {
       workspaceId: data.workspaceId,
       dateRange: DateRange.create(data.startDate, data.endDate),
       segments: data.segments.map((segment) => SegmentoHorario.rehydrate(segment)),
+      domainEvents: data.domainEvents ?? [],
       createdAt: data.createdAt,
     })
   }
 
   changeDateRange(startDate: string, endDate: string) {
-    return new DisponibilidadAggregate({
-      id: this._id,
-      workspaceId: this._workspaceId,
+    return this.cloneWith({
       dateRange: DateRange.create(startDate, endDate),
-      segments: this._segments,
-      createdAt: this._createdAt,
+      domainEvents: [
+        ...this._domainEvents,
+        availabilityEvents.dateRangeChanged({
+          disponibilidadId: this._id,
+          startDate,
+          endDate,
+        }),
+      ],
     })
   }
 
@@ -234,22 +258,32 @@ export class DisponibilidadAggregate {
     daysOfWeek?: number[]
     daysOfMonth?: number[]
   }) {
-    return new DisponibilidadAggregate({
-      id: this._id,
-      workspaceId: this._workspaceId,
-      dateRange: this._dateRange,
-      segments: [...this._segments, SegmentoHorario.create(data)],
-      createdAt: this._createdAt,
+    const segment = SegmentoHorario.create(data)
+    return this.cloneWith({
+      segments: [...this._segments, segment],
+      domainEvents: [
+        ...this._domainEvents,
+        availabilityEvents.segmentAdded({
+          disponibilidadId: this._id,
+          segmentId: segment.id,
+        }),
+      ],
     })
   }
 
   removeSegment(segmentId: string) {
-    return new DisponibilidadAggregate({
-      id: this._id,
-      workspaceId: this._workspaceId,
-      dateRange: this._dateRange,
+    if (!this._segments.some((segment) => segment.id === segmentId)) {
+      throw domainError('NOT_FOUND', 'Segmento no encontrado')
+    }
+    return this.cloneWith({
       segments: this._segments.filter((segment) => segment.id !== segmentId),
-      createdAt: this._createdAt,
+      domainEvents: [
+        ...this._domainEvents,
+        availabilityEvents.segmentRemoved({
+          disponibilidadId: this._id,
+          segmentId,
+        }),
+      ],
     })
   }
 
@@ -263,6 +297,9 @@ export class DisponibilidadAggregate {
       daysOfMonth?: number[]
     },
   ) {
+    if (!this._segments.some((segment) => segment.id === segmentId)) {
+      throw domainError('NOT_FOUND', 'Segmento no encontrado')
+    }
     const next = this._segments.map((segment) =>
       segment.id === segmentId
         ? SegmentoHorario.rehydrate({
@@ -275,12 +312,15 @@ export class DisponibilidadAggregate {
           })
         : segment,
     )
-    return new DisponibilidadAggregate({
-      id: this._id,
-      workspaceId: this._workspaceId,
-      dateRange: this._dateRange,
+    return this.cloneWith({
       segments: next,
-      createdAt: this._createdAt,
+      domainEvents: [
+        ...this._domainEvents,
+        availabilityEvents.segmentReplaced({
+          disponibilidadId: this._id,
+          segmentId,
+        }),
+      ],
     })
   }
 
@@ -336,6 +376,10 @@ export class DisponibilidadAggregate {
     return this.calcularMinutosValidos() / 60
   }
 
+  pullDomainEvents() {
+    return this._domainEvents.map((event) => ({ ...event }))
+  }
+
   toPrimitives(): DisponibilidadPrimitives {
     return {
       id: this._id,
@@ -343,8 +387,26 @@ export class DisponibilidadAggregate {
       startDate: this._dateRange.start,
       endDate: this._dateRange.end,
       segments: this._segments.map((segment) => segment.toPrimitives()),
+      domainEvents: this._domainEvents.map((event) => ({ ...event })),
       createdAt: this._createdAt,
     }
+  }
+
+  private cloneWith(
+    patch: Partial<{
+      dateRange: DateRange
+      segments: readonly SegmentoHorario[]
+      domainEvents: readonly AvailabilityDomainEvent[]
+    }>,
+  ) {
+    return new DisponibilidadAggregate({
+      id: this._id,
+      workspaceId: this._workspaceId,
+      dateRange: patch.dateRange ?? this._dateRange,
+      segments: patch.segments ?? this._segments,
+      domainEvents: patch.domainEvents ?? this._domainEvents,
+      createdAt: this._createdAt,
+    })
   }
 
   get id() {
