@@ -1,16 +1,16 @@
 import { domainError } from '../errores/DomainError'
 import { type TaskDomainEvent, taskEvents } from '../eventos/TaskEvents'
+import {
+  allowedTaskNextStates,
+  canTaskTransition,
+  eventForTargetState,
+  transitionTask,
+} from '../maquinas/task/TaskStateMachine'
 import { TaskDuration } from '../valores_objeto/TaskDuration'
 import { type TaskStatus, isTaskStatus } from '../valores_objeto/TaskStatus'
 import { TodoText } from '../valores_objeto/TodoText'
 
 const DEFAULT_TASK_DURATION_MINUTES = 30
-const ALLOWED_STATUS_TRANSITIONS: Record<TaskStatus, TaskStatus[]> = {
-  PENDING: ['IN_PROGRESS', 'DONE', 'ABANDONED'],
-  IN_PROGRESS: ['PENDING', 'DONE', 'ABANDONED'],
-  DONE: ['IN_PROGRESS', 'ABANDONED'],
-  ABANDONED: ['PENDING', 'IN_PROGRESS'],
-}
 
 type TaskStatusChangePrimitives = {
   fromStatus: TaskStatus
@@ -163,7 +163,11 @@ export class TaskAggregate {
           'Historial de estados contiene una transicion invalida',
         )
       }
-      if (!ALLOWED_STATUS_TRANSITIONS[change.fromStatus].includes(change.toStatus)) {
+      const eventType = eventForTargetState(change.fromStatus, change.toStatus)
+      if (
+        eventType === undefined ||
+        !canTaskTransition(change.fromStatus, eventType)
+      ) {
         throw domainError(
           'VALIDATION_ERROR',
           'Historial de estados contiene una transicion no permitida',
@@ -236,17 +240,19 @@ export class TaskAggregate {
   changeStatus(actorUserId: number, toStatus: TaskStatus) {
     this.ensureActor(actorUserId)
     if (this._status === toStatus) return this
-    if (!ALLOWED_STATUS_TRANSITIONS[this._status].includes(toStatus)) {
+    const eventType = eventForTargetState(this._status, toStatus)
+    if (eventType === undefined) {
       throw domainError('INVALID_TRANSITION', 'Transicion de estado no permitida')
     }
+    const nextStatus = transitionTask(this._status, eventType)
     return this.cloneWith({
-      status: toStatus,
+      status: nextStatus,
       lastStatusChangedByUserId: actorUserId,
       statusHistory: [
         ...this._statusHistory,
         {
           fromStatus: this._status,
-          toStatus,
+          toStatus: nextStatus,
           changedByUserId: actorUserId,
           changedAt: Date.now(),
         },
@@ -256,7 +262,7 @@ export class TaskAggregate {
         taskEvents.statusChanged({
           taskId: this._id,
           fromStatus: this._status,
-          toStatus,
+          toStatus: nextStatus,
           changedByUserId: actorUserId,
         }),
       ],
@@ -272,11 +278,13 @@ export class TaskAggregate {
 
   canTransitionTo(nextStatus: TaskStatus) {
     if (this._status === nextStatus) return false
-    return ALLOWED_STATUS_TRANSITIONS[this._status].includes(nextStatus)
+    const eventType = eventForTargetState(this._status, nextStatus)
+    if (eventType === undefined) return false
+    return canTaskTransition(this._status, eventType)
   }
 
   allowedNextStatuses() {
-    return [...ALLOWED_STATUS_TRANSITIONS[this._status]]
+    return allowedTaskNextStates(this._status)
   }
 
   schedule(actorUserId: number, scheduledStart: number, scheduledEnd: number) {
