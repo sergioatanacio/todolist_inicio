@@ -34,12 +34,14 @@ export const createAppDataLoaders = (deps: LoaderDependencies) => {
   }
 
   const loadProjectContext = (services: AppServices, projectId: string) => {
+    const nowMs = Date.now()
     const disponibilidades = services.disponibilidad.listByProject(projectId).map((item) => ({
       id: item.id,
       projectId: item.projectId,
       name: item.name,
       startDate: item.startDate,
       endDate: item.endDate,
+      remainingUsableMinutes: item.calcularMinutosValidosDesde(nowMs),
       segments: item.segments.map((segment) => ({
         id: segment.id,
         name: segment.name,

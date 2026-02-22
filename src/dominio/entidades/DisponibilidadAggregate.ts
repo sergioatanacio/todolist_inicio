@@ -51,6 +51,8 @@ export type DisponibilidadInterval = SegmentInterval
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const MINUTE_MS = 60 * 1000
+const truncateToMinute = (timestamp: number) =>
+  Math.floor(timestamp / MINUTE_MS) * MINUTE_MS
 
 const parseIsoDate = (raw: string): Date => {
   const date = new Date(`${raw}T00:00:00.000Z`)
@@ -420,6 +422,17 @@ export class DisponibilidadAggregate {
       (total, interval) => total + (interval.endMs - interval.startMs) / MINUTE_MS,
       0,
     )
+  }
+
+  calcularMinutosValidosDesde(nowMs: number = Date.now()) {
+    const now = truncateToMinute(nowMs)
+    const merged = this.calcularIntervalosValidos()
+    if (merged.length === 0) return 0
+    return merged.reduce((total, interval) => {
+      const start = Math.max(interval.startMs, now)
+      if (start >= interval.endMs) return total
+      return total + (interval.endMs - start) / MINUTE_MS
+    }, 0)
   }
 
   calcularIntervalosValidos(): DisponibilidadInterval[] {

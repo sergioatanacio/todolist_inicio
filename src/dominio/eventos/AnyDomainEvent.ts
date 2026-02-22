@@ -1,3 +1,5 @@
+import type { AiAgentDomainEvent } from './AiAgentEvents'
+import type { AiConversationDomainEvent } from './AiConversationEvents'
 import type { AvailabilityDomainEvent } from './AvailabilityEvents'
 import type { ProjectDomainEvent } from './ProjectEvents'
 import type { TaskDomainEvent } from './TaskEvents'
@@ -5,6 +7,8 @@ import type { WorkspaceConversationDomainEvent } from './WorkspaceConversationEv
 import type { WorkspaceDomainEvent } from './WorkspaceEvents'
 
 export type AnyDomainEvent =
+  | AiAgentDomainEvent
+  | AiConversationDomainEvent
   | WorkspaceDomainEvent
   | ProjectDomainEvent
   | TaskDomainEvent

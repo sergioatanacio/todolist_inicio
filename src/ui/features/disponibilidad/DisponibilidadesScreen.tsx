@@ -1,5 +1,12 @@
 import type { DisponibilidadVm } from '../../types/AppUiModels'
 
+const formatHoursAndMinutes = (minutes: number) => {
+  const safeMinutes = Math.max(0, Math.floor(minutes))
+  const hours = Math.floor(safeMinutes / 60)
+  const rest = safeMinutes % 60
+  return `${hours} h ${rest} min`
+}
+
 type DisponibilidadesScreenProps = {
   dispName: string
   dispDescription: string
@@ -48,6 +55,9 @@ export function DisponibilidadesScreen({
         {disponibilidades.map((disp) => (
           <div key={disp.id} className="rounded border border-slate-300 p-2 text-sm">
             <p>{disp.name} ({disp.startDate} - {disp.endDate})</p>
+            <p className="text-xs text-slate-600">
+              Tiempo usable restante: {formatHoursAndMinutes(disp.remainingUsableMinutes)} ({disp.remainingUsableMinutes} min)
+            </p>
             <div className="mt-1 flex gap-2">
               <button type="button" onClick={() => onOpenSegments(disp.id)} className="rounded border border-slate-300 px-2 py-1 text-xs">Segmentos</button>
               <button type="button" onClick={() => onOpenCalendar(disp.id)} className="rounded border border-slate-300 px-2 py-1 text-xs">Calendar</button>

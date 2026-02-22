@@ -17,6 +17,7 @@ export type DisponibilidadVm = {
   name: string
   startDate: string
   endDate: string
+  remainingUsableMinutes: number
   segments: Array<{
     id: string
     name: string

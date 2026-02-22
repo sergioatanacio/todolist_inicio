@@ -82,4 +82,29 @@ export const disponibilidadAggregateSpec = () => {
     withExclusion.calcularMinutosValidos() === 180,
     'Expected 3 Mondays x 60 minutes because one Monday is excluded',
   )
+
+  const fromNow = DisponibilidadAggregate.create({
+    projectId: 'prj-3',
+    name: 'Desde ahora',
+    startDate: '2026-02-10',
+    endDate: '2026-02-10',
+    segments: [
+      {
+        name: 'Bloque unico',
+        startTime: '09:00',
+        endTime: '10:00',
+        specificDates: ['2026-02-10'],
+      },
+    ],
+  })
+  const nowAt0930 = Date.parse('2026-02-10T09:30:00.000Z')
+  assert(
+    fromNow.calcularMinutosValidosDesde(nowAt0930) === 30,
+    'Expected only future part of interval from current minute',
+  )
+  const nowAt1030 = Date.parse('2026-02-10T10:30:00.000Z')
+  assert(
+    fromNow.calcularMinutosValidosDesde(nowAt1030) === 0,
+    'Expected zero when interval is fully in the past',
+  )
 }
