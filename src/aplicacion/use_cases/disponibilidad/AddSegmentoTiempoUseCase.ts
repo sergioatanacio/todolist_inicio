@@ -62,6 +62,7 @@ export class AddSegmentoTiempoUseCase {
         startTime: input.startTime,
         endTime: input.endTime,
         specificDates: input.specificDates,
+        exclusionDates: input.exclusionDates,
         daysOfWeek: input.daysOfWeek,
         daysOfMonth: input.daysOfMonth,
       })

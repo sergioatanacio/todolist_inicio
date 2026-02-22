@@ -23,6 +23,7 @@ export type AddSegmentoTiempoCommand = {
   startTime: string
   endTime: string
   specificDates?: string[]
+  exclusionDates?: string[]
   daysOfWeek?: number[]
   daysOfMonth?: number[]
 }
@@ -44,6 +45,7 @@ export const validateAddSegmentoTiempoCommand = (
   startTime: commandValidation.normalizeString(command.startTime, 'startTime'),
   endTime: commandValidation.normalizeString(command.endTime, 'endTime'),
   specificDates: normalizeStringArray(command.specificDates, 'specificDates'),
+  exclusionDates: normalizeStringArray(command.exclusionDates, 'exclusionDates'),
   daysOfWeek: normalizeNumberArray(command.daysOfWeek),
   daysOfMonth: normalizeNumberArray(command.daysOfMonth),
 })

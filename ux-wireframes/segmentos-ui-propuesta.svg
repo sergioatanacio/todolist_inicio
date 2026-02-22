@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1200" viewBox="0 0 1800 1200">
+  <text x="24" y="30" font-size="24">UI Segmentos - Controles propuestos (sin filtros)</text>
+
+  <rect x="20" y="50" width="1760" height="1120" fill="none" stroke="black"/>
+
+  <rect x="40" y="80" width="320" height="60" fill="none" stroke="black"/>
+  <text x="56" y="116" font-size="14">Contexto: Workspace / Proyecto / Disponibilidad</text>
+
+  <rect x="380" y="80" width="1380" height="60" fill="none" stroke="black"/>
+  <text x="396" y="106" font-size="12">Disponibilidad: "Semana laboral" | Rango: 2026-02-01 a 2026-03-30 | Estado: ACTIVE</text>
+  <text x="396" y="126" font-size="12">Acciones: [Volver] [Ver calendario disponibilidad]</text>
+
+  <rect x="40" y="170" width="540" height="980" fill="none" stroke="black"/>
+  <text x="56" y="198" font-size="18">Lista de segmentos</text>
+
+  <rect x="56" y="214" width="508" height="42" fill="none" stroke="black"/>
+  <text x="68" y="240" font-size="12">Buscar segmento...</text>
+
+  <rect x="56" y="270" width="508" height="34" fill="none" stroke="black"/>
+  <text x="68" y="292" font-size="12">[Nuevo segmento] [Duplicar] [Eliminar]</text>
+
+  <rect x="56" y="320" width="508" height="120" fill="none" stroke="black"/>
+  <text x="68" y="344" font-size="13">Segmento: Manana</text>
+  <text x="68" y="364" font-size="11">Hora: 08:00 - 12:00</text>
+  <text x="68" y="382" font-size="11">Reglas: Lun, Mie, Vie + fechas 2026-02-15</text>
+  <text x="68" y="400" font-size="11">Exclusiones: 2026-02-19</text>
+  <text x="68" y="420" font-size="11">[Editar] [Duplicar] [Eliminar]</text>
+
+  <rect x="56" y="452" width="508" height="120" fill="none" stroke="black"/>
+  <text x="68" y="476" font-size="13">Segmento: Noche</text>
+  <text x="68" y="496" font-size="11">Hora: 22:00 - 02:00 (cruza medianoche)</text>
+  <text x="68" y="514" font-size="11">Reglas: fechas especificas</text>
+  <text x="68" y="532" font-size="11">Exclusiones: ninguna</text>
+  <text x="68" y="552" font-size="11">[Editar] [Duplicar] [Eliminar]</text>
+
+  <rect x="56" y="586" width="508" height="256" fill="none" stroke="black"/>
+  <text x="68" y="610" font-size="14">Validaciones globales</text>
+  <text x="68" y="632" font-size="11">- Segmentos sin reglas: ERROR</text>
+  <text x="68" y="650" font-size="11">- Horas invalidas: ERROR</text>
+  <text x="68" y="668" font-size="11">- Solapes entre segmentos: WARNING (permitido)</text>
+  <text x="68" y="686" font-size="11">- Fechas fuera de rango: INFO (no bloquea)</text>
+  <text x="68" y="704" font-size="11">- Exclusiones en conflicto: exclusion gana</text>
+
+  <rect x="56" y="856" width="508" height="276" fill="none" stroke="black"/>
+  <text x="68" y="880" font-size="14">Resumen rapido</text>
+  <text x="68" y="902" font-size="11">Segmentos activos: 2</text>
+  <text x="68" y="920" font-size="11">Minutos validos estimados: 1920</text>
+  <text x="68" y="938" font-size="11">Horas validas: 32</text>
+  <text x="68" y="956" font-size="11">[Actualizar calculo]</text>
+
+  <rect x="600" y="170" width="1160" height="980" fill="none" stroke="black"/>
+  <text x="616" y="198" font-size="18">Editor de segmento</text>
+
+  <rect x="616" y="214" width="1128" height="36" fill="none" stroke="black"/>
+  <text x="628" y="238" font-size="12">Paso 1: Datos base | Paso 2: Reglas | Paso 3: Exclusiones | Paso 4: Vista previa</text>
+
+  <rect x="616" y="266" width="550" height="40" fill="none" stroke="black"/>
+  <text x="628" y="292" font-size="12">Nombre del segmento (obligatorio)</text>
+
+  <rect x="1178" y="266" width="566" height="40" fill="none" stroke="black"/>
+  <text x="1190" y="292" font-size="12">Descripcion (opcional)</text>
+
+  <rect x="616" y="320" width="270" height="40" fill="none" stroke="black"/>
+  <text x="628" y="346" font-size="12">Hora inicio</text>
+
+  <rect x="896" y="320" width="270" height="40" fill="none" stroke="black"/>
+  <text x="908" y="346" font-size="12">Hora fin</text>
+
+  <rect x="1178" y="320" width="566" height="40" fill="none" stroke="black"/>
+  <text x="1190" y="346" font-size="12">Indicador: cruza medianoche (auto)</text>
+
+  <rect x="616" y="378" width="1128" height="220" fill="none" stroke="black"/>
+  <text x="628" y="402" font-size="14">Reglas de aplicacion</text>
+
+  <rect x="628" y="416" width="360" height="30" fill="none" stroke="black"/>
+  <text x="640" y="436" font-size="11">Tab: Fechas especificas</text>
+
+  <rect x="998" y="416" width="360" height="30" fill="none" stroke="black"/>
+  <text x="1010" y="436" font-size="11">Tab: Dias semana</text>
+
+  <rect x="1368" y="416" width="360" height="30" fill="none" stroke="black"/>
+  <text x="1380" y="436" font-size="11">Tab: Dias mes</text>
+
+  <rect x="628" y="458" width="540" height="126" fill="none" stroke="black"/>
+  <text x="640" y="482" font-size="11">Selector multiple de fechas (calendario)</text>
+  <text x="640" y="500" font-size="11">[ + Agregar fecha ]</text>
+  <text x="640" y="518" font-size="11">Lista fechas: 2026-02-15, 2026-02-22</text>
+
+  <rect x="1180" y="458" width="548" height="126" fill="none" stroke="black"/>
+  <text x="1192" y="482" font-size="11">Chips dias semana: [1][2][3][4][5][6][7]</text>
+  <text x="1192" y="500" font-size="11">Seleccionados: 1,3,5</text>
+  <text x="1192" y="518" font-size="11">Chips dias mes: [1..31]</text>
+
+  <rect x="616" y="612" width="1128" height="140" fill="none" stroke="black"/>
+  <text x="628" y="636" font-size="14">Exclusiones</text>
+  <rect x="628" y="648" width="360" height="30" fill="none" stroke="black"/>
+  <text x="640" y="668" font-size="11">Date picker exclusion</text>
+  <rect x="998" y="648" width="150" height="30" fill="none" stroke="black"/>
+  <text x="1010" y="668" font-size="11">Agregar</text>
+  <rect x="628" y="684" width="1100" height="54" fill="none" stroke="black"/>
+  <text x="640" y="706" font-size="11">Excluidas: 2026-02-19, 2026-03-01 (chips removibles)</text>
+
+  <rect x="616" y="770" width="1128" height="260" fill="none" stroke="black"/>
+  <text x="628" y="794" font-size="14">Vista previa</text>
+  <rect x="628" y="806" width="700" height="210" fill="none" stroke="black"/>
+  <text x="640" y="828" font-size="11">Mini calendario: dias aplicados / excluidos / fuera de rango</text>
+  <rect x="1340" y="806" width="388" height="100" fill="none" stroke="black"/>
+  <text x="1352" y="828" font-size="11">Totales</text>
+  <text x="1352" y="846" font-size="11">Dias aplicables: 14</text>
+  <text x="1352" y="864" font-size="11">Minutos: 3360</text>
+  <text x="1352" y="882" font-size="11">Horas: 56</text>
+  <rect x="1340" y="916" width="388" height="100" fill="none" stroke="black"/>
+  <text x="1352" y="938" font-size="11">Alertas:</text>
+  <text x="1352" y="956" font-size="11">- Ningun error bloqueante</text>
+
+  <rect x="616" y="1048" width="180" height="40" fill="none" stroke="black"/>
+  <text x="628" y="1074" font-size="12">Guardar segmento</text>
+
+  <rect x="806" y="1048" width="130" height="40" fill="none" stroke="black"/>
+  <text x="818" y="1074" font-size="12">Cancelar</text>
+
+  <rect x="946" y="1048" width="180" height="40" fill="none" stroke="black"/>
+  <text x="958" y="1074" font-size="12">Guardar y nuevo</text>
+
+  <text x="20" y="1188" font-size="11">Rutas sugeridas: /app/workspaces/:w/projects/:p/disponibilidades/:d y /calendar</text>
+</svg>
