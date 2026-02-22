@@ -3,7 +3,7 @@ import { ProjectName } from '../valores_objeto/ProjectName'
 
 type ProjectPrimitives = {
   id: string
-  ownerId: number
+  workspaceId: string
   name: string
   description: string
   createdAt: number
@@ -11,29 +11,29 @@ type ProjectPrimitives = {
 
 export class ProjectAggregate {
   private readonly _id: string
-  private readonly _ownerId: number
+  private readonly _workspaceId: string
   private readonly _name: ProjectName
   private readonly _description: ProjectDescription
   private readonly _createdAt: number
 
   private constructor(data: {
     id: string
-    ownerId: number
+    workspaceId: string
     name: ProjectName
     description: ProjectDescription
     createdAt: number
   }) {
     this._id = data.id
-    this._ownerId = data.ownerId
+    this._workspaceId = data.workspaceId
     this._name = data.name
     this._description = data.description
     this._createdAt = data.createdAt
   }
 
-  static create(ownerId: number, rawName: string, rawDescription: string) {
+  static create(workspaceId: string, rawName: string, rawDescription: string) {
     return new ProjectAggregate({
       id: crypto.randomUUID(),
-      ownerId,
+      workspaceId,
       name: ProjectName.create(rawName),
       description: ProjectDescription.create(rawDescription),
       createdAt: Date.now(),
@@ -43,7 +43,7 @@ export class ProjectAggregate {
   static rehydrate(data: ProjectPrimitives) {
     return new ProjectAggregate({
       id: data.id,
-      ownerId: data.ownerId,
+      workspaceId: data.workspaceId,
       name: ProjectName.create(data.name),
       description: ProjectDescription.create(data.description),
       createdAt: data.createdAt,
@@ -53,7 +53,7 @@ export class ProjectAggregate {
   rename(rawName: string) {
     return new ProjectAggregate({
       id: this._id,
-      ownerId: this._ownerId,
+      workspaceId: this._workspaceId,
       name: ProjectName.create(rawName),
       description: this._description,
       createdAt: this._createdAt,
@@ -63,7 +63,7 @@ export class ProjectAggregate {
   updateDescription(rawDescription: string) {
     return new ProjectAggregate({
       id: this._id,
-      ownerId: this._ownerId,
+      workspaceId: this._workspaceId,
       name: this._name,
       description: ProjectDescription.create(rawDescription),
       createdAt: this._createdAt,
@@ -73,7 +73,7 @@ export class ProjectAggregate {
   toPrimitives(): ProjectPrimitives {
     return {
       id: this._id,
-      ownerId: this._ownerId,
+      workspaceId: this._workspaceId,
       name: this._name.value,
       description: this._description.value,
       createdAt: this._createdAt,
@@ -84,8 +84,8 @@ export class ProjectAggregate {
     return this._id
   }
 
-  get ownerId() {
-    return this._ownerId
+  get workspaceId() {
+    return this._workspaceId
   }
 
   get name() {

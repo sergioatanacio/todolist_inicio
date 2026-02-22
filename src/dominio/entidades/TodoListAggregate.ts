@@ -1,9 +1,18 @@
 import { TodoListDescription } from '../valores_objeto/TodoListDescription'
 import { TodoListName } from '../valores_objeto/TodoListName'
 
+const normalizeDisponibilidadId = (raw: string) => {
+  const normalized = raw.trim()
+  if (normalized.length < 1) {
+    throw new Error('El id de disponibilidad es obligatorio')
+  }
+  return normalized
+}
+
 type TodoListPrimitives = {
   id: string
   projectId: string
+  disponibilidadId: string
   name: string
   description: string
   createdAt: number
@@ -12,6 +21,7 @@ type TodoListPrimitives = {
 export class TodoListAggregate {
   private readonly _id: string
   private readonly _projectId: string
+  private readonly _disponibilidadId: string
   private readonly _name: TodoListName
   private readonly _description: TodoListDescription
   private readonly _createdAt: number
@@ -19,12 +29,14 @@ export class TodoListAggregate {
   private constructor(data: {
     id: string
     projectId: string
+    disponibilidadId: string
     name: TodoListName
     description: TodoListDescription
     createdAt: number
   }) {
     this._id = data.id
     this._projectId = data.projectId
+    this._disponibilidadId = data.disponibilidadId
     this._name = data.name
     this._description = data.description
     this._createdAt = data.createdAt
@@ -32,12 +44,14 @@ export class TodoListAggregate {
 
   static create(
     projectId: string,
+    disponibilidadId: string,
     rawName: string,
     rawDescription: string,
   ) {
     return new TodoListAggregate({
       id: crypto.randomUUID(),
       projectId,
+      disponibilidadId: normalizeDisponibilidadId(disponibilidadId),
       name: TodoListName.create(rawName),
       description: TodoListDescription.create(rawDescription),
       createdAt: Date.now(),
@@ -48,6 +62,7 @@ export class TodoListAggregate {
     return new TodoListAggregate({
       id: data.id,
       projectId: data.projectId,
+      disponibilidadId: normalizeDisponibilidadId(data.disponibilidadId),
       name: TodoListName.create(data.name),
       description: TodoListDescription.create(data.description),
       createdAt: data.createdAt,
@@ -58,6 +73,7 @@ export class TodoListAggregate {
     return new TodoListAggregate({
       id: this._id,
       projectId: this._projectId,
+      disponibilidadId: this._disponibilidadId,
       name: TodoListName.create(rawName),
       description: this._description,
       createdAt: this._createdAt,
@@ -68,8 +84,21 @@ export class TodoListAggregate {
     return new TodoListAggregate({
       id: this._id,
       projectId: this._projectId,
+      disponibilidadId: this._disponibilidadId,
       name: this._name,
       description: TodoListDescription.create(rawDescription),
+      createdAt: this._createdAt,
+    })
+  }
+
+  reassignDisponibilidad(disponibilidadId: string) {
+    const normalized = normalizeDisponibilidadId(disponibilidadId)
+    return new TodoListAggregate({
+      id: this._id,
+      projectId: this._projectId,
+      disponibilidadId: normalized,
+      name: this._name,
+      description: this._description,
       createdAt: this._createdAt,
     })
   }
@@ -78,6 +107,7 @@ export class TodoListAggregate {
     return {
       id: this._id,
       projectId: this._projectId,
+      disponibilidadId: this._disponibilidadId,
       name: this._name.value,
       description: this._description.value,
       createdAt: this._createdAt,
@@ -90,6 +120,10 @@ export class TodoListAggregate {
 
   get projectId() {
     return this._projectId
+  }
+
+  get disponibilidadId() {
+    return this._disponibilidadId
   }
 
   get name() {
