@@ -303,7 +303,7 @@ export function WorkspaceHomeView({
                   <div className="space-y-2">
                     {activeWorkspaceDisponibilidades.length === 0 ? (
                       <p className="text-sm text-slate-500">
-                        No hay disponibilidades en este workspace.
+                        No hay disponibilidades en este proyecto.
                       </p>
                     ) : (
                       activeWorkspaceDisponibilidades.map((item) => (

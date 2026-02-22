@@ -24,6 +24,7 @@ type SegmentoHorarioPrimitives = {
   startTime: string
   endTime: string
   specificDates: string[]
+  exclusionDates: string[]
   daysOfWeek: number[]
   daysOfMonth: number[]
 }
@@ -45,6 +46,8 @@ type SegmentInterval = {
   startMs: number
   endMs: number
 }
+
+export type DisponibilidadInterval = SegmentInterval
 
 const DAY_MS = 24 * 60 * 60 * 1000
 const MINUTE_MS = 60 * 1000
@@ -73,6 +76,7 @@ class SegmentoHorario {
   private readonly _description: SegmentoTiempoDescription
   private readonly _timeRange: TimeRange
   private readonly _specificDates: SpecificDateSet
+  private readonly _exclusionDates: SpecificDateSet
   private readonly _daysOfWeek: DayOfWeekSet
   private readonly _daysOfMonth: DayOfMonthSet
 
@@ -82,6 +86,7 @@ class SegmentoHorario {
     description: SegmentoTiempoDescription
     timeRange: TimeRange
     specificDates: SpecificDateSet
+    exclusionDates: SpecificDateSet
     daysOfWeek: DayOfWeekSet
     daysOfMonth: DayOfMonthSet
   }) {
@@ -90,6 +95,7 @@ class SegmentoHorario {
     this._description = data.description
     this._timeRange = data.timeRange
     this._specificDates = data.specificDates
+    this._exclusionDates = data.exclusionDates
     this._daysOfWeek = data.daysOfWeek
     this._daysOfMonth = data.daysOfMonth
   }
@@ -100,6 +106,7 @@ class SegmentoHorario {
     startTime: string
     endTime: string
     specificDates?: string[]
+    exclusionDates?: string[]
     daysOfWeek?: number[]
     daysOfMonth?: number[]
   }) {
@@ -110,6 +117,7 @@ class SegmentoHorario {
       startTime: data.startTime,
       endTime: data.endTime,
       specificDates: data.specificDates ?? [],
+      exclusionDates: data.exclusionDates ?? [],
       daysOfWeek: data.daysOfWeek ?? [],
       daysOfMonth: data.daysOfMonth ?? [],
     })
@@ -117,6 +125,7 @@ class SegmentoHorario {
 
   static rehydrate(data: SegmentoHorarioPrimitives) {
     const specificDates = SpecificDateSet.create(data.specificDates)
+    const exclusionDates = SpecificDateSet.create(data.exclusionDates ?? [])
     const daysOfWeek = DayOfWeekSet.create(data.daysOfWeek)
     const daysOfMonth = DayOfMonthSet.create(data.daysOfMonth)
     const hasRule =
@@ -135,12 +144,18 @@ class SegmentoHorario {
       description: SegmentoTiempoDescription.create(data.description ?? ''),
       timeRange: TimeRange.create(data.startTime, data.endTime),
       specificDates,
+      exclusionDates,
       daysOfWeek,
       daysOfMonth,
     })
   }
 
+  private isExcluded(baseDate: Date) {
+    return this._exclusionDates.has(toIsoDate(baseDate))
+  }
+
   appliesTo(baseDate: Date) {
+    if (this.isExcluded(baseDate)) return false
     const iso = toIsoDate(baseDate)
     return (
       this._specificDates.has(iso) ||
@@ -169,16 +184,19 @@ class SegmentoHorario {
         },
       ]
     }
-    return [
-      {
-        startMs: baseDayStartMs + ranges[0].startMinutes * MINUTE_MS,
-        endMs: baseDayStartMs + ranges[0].endMinutes * MINUTE_MS,
-      },
-      {
+    const nextDay = new Date(baseDate.getTime() + DAY_MS)
+    const intervals: SegmentInterval[] = []
+    intervals.push({
+      startMs: baseDayStartMs + ranges[0].startMinutes * MINUTE_MS,
+      endMs: baseDayStartMs + ranges[0].endMinutes * MINUTE_MS,
+    })
+    if (!this.isExcluded(nextDay)) {
+      intervals.push({
         startMs: baseDayStartMs + DAY_MS + ranges[1].startMinutes * MINUTE_MS,
         endMs: baseDayStartMs + DAY_MS + ranges[1].endMinutes * MINUTE_MS,
-      },
-    ]
+      })
+    }
+    return intervals
   }
 
   toPrimitives(): SegmentoHorarioPrimitives {
@@ -189,6 +207,7 @@ class SegmentoHorario {
       startTime: this._timeRange.start,
       endTime: this._timeRange.end,
       specificDates: this._specificDates.toArray(),
+      exclusionDates: this._exclusionDates.toArray(),
       daysOfWeek: this._daysOfWeek.toArray(),
       daysOfMonth: this._daysOfMonth.toArray(),
     }
@@ -252,6 +271,7 @@ export class DisponibilidadAggregate {
       startTime: string
       endTime: string
       specificDates?: string[]
+      exclusionDates?: string[]
       daysOfWeek?: number[]
       daysOfMonth?: number[]
     }>
@@ -314,6 +334,7 @@ export class DisponibilidadAggregate {
     startTime: string
     endTime: string
     specificDates?: string[]
+    exclusionDates?: string[]
     daysOfWeek?: number[]
     daysOfMonth?: number[]
   }) {
@@ -356,6 +377,7 @@ export class DisponibilidadAggregate {
       startTime: string
       endTime: string
       specificDates?: string[]
+      exclusionDates?: string[]
       daysOfWeek?: number[]
       daysOfMonth?: number[]
     },
@@ -373,6 +395,7 @@ export class DisponibilidadAggregate {
             startTime: data.startTime,
             endTime: data.endTime,
             specificDates: data.specificDates ?? [],
+            exclusionDates: data.exclusionDates ?? [],
             daysOfWeek: data.daysOfWeek ?? [],
             daysOfMonth: data.daysOfMonth ?? [],
           })
@@ -391,7 +414,16 @@ export class DisponibilidadAggregate {
   }
 
   calcularMinutosValidos() {
-    if (this._segments.length === 0) return 0
+    const merged = this.calcularIntervalosValidos()
+    if (merged.length === 0) return 0
+    return merged.reduce(
+      (total, interval) => total + (interval.endMs - interval.startMs) / MINUTE_MS,
+      0,
+    )
+  }
+
+  calcularIntervalosValidos(): DisponibilidadInterval[] {
+    if (this._segments.length === 0) return []
     const startDate = parseIsoDate(this._dateRange.start)
     const endDate = parseIsoDate(this._dateRange.end)
     const windowStartMs = startDate.getTime()
@@ -415,7 +447,7 @@ export class DisponibilidadAggregate {
       }
     }
 
-    if (intervals.length === 0) return 0
+    if (intervals.length === 0) return []
     intervals.sort((a, b) => a.startMs - b.startMs)
 
     const merged: SegmentInterval[] = [intervals[0]]
@@ -432,10 +464,7 @@ export class DisponibilidadAggregate {
       }
     }
 
-    return merged.reduce(
-      (total, interval) => total + (interval.endMs - interval.startMs) / MINUTE_MS,
-      0,
-    )
+    return merged
   }
 
   calcularHorasValidas() {

@@ -7,6 +7,8 @@ import { taskAggregateSpec } from './TaskAggregate.spec.ts'
 import { taskCommentStateMachineSpec } from './TaskCommentStateMachine.spec.ts'
 import { taskStateMachineSpec } from './TaskStateMachine.spec.ts'
 import { taskWorkflowServiceSpec } from './TaskWorkflowService.spec.ts'
+import { todoListAggregateSpec } from './TodoListAggregate.spec.ts'
+import { schedulingPolicySpec } from './SchedulingPolicy.spec.ts'
 import { workspaceAggregateSpec } from './WorkspaceAggregate.spec.ts'
 import { workspaceConversationAggregateSpec } from './WorkspaceConversationAggregate.spec.ts'
 import { workspaceConversationMessageStateMachineSpec } from './WorkspaceConversationMessageStateMachine.spec.ts'
@@ -24,6 +26,8 @@ export const runDomainSpecs = () => {
   taskCommentStateMachineSpec()
   taskAggregateSpec()
   taskWorkflowServiceSpec()
+  todoListAggregateSpec()
+  schedulingPolicySpec()
   workspaceMemberStateMachineSpec()
   workspaceOwnershipStateMachineSpec()
   workspaceConversationMessageStateMachineSpec()

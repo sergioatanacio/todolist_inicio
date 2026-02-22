@@ -59,6 +59,7 @@ export const initDatabase = async () => {
       id TEXT PRIMARY KEY,
       user_id INTEGER NOT NULL,
       text TEXT NOT NULL,
+      duration_minutes INTEGER NOT NULL DEFAULT 30,
       done INTEGER NOT NULL,
       created_at INTEGER NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id)
@@ -88,10 +89,22 @@ export const initDatabase = async () => {
       payload_json TEXT NOT NULL,
       updated_at INTEGER NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS tasks_domain (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      todo_list_id TEXT NOT NULL,
+      payload_json TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
   `)
   // Compatibilidad con bases previas donde disponibilidades tenia workspace_id.
   try {
     db.exec('ALTER TABLE disponibilidades ADD COLUMN project_id TEXT')
+  } catch {
+    // Ignorar si ya existe.
+  }
+  try {
+    db.exec('ALTER TABLE todos ADD COLUMN duration_minutes INTEGER NOT NULL DEFAULT 30')
   } catch {
     // Ignorar si ya existe.
   }

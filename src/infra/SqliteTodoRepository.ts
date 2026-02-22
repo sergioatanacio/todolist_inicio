@@ -9,7 +9,7 @@ export class SqliteTodoRepository {
 
   findByUserId(userId: number) {
     const stmt = this.db.prepare(
-      'SELECT id, text, done, created_at FROM todos WHERE user_id = ? ORDER BY created_at DESC',
+      'SELECT id, text, duration_minutes, done, created_at FROM todos WHERE user_id = ? ORDER BY created_at DESC',
     )
     stmt.bind([userId])
     const rows: TodoAggregate[] = []
@@ -20,6 +20,7 @@ export class SqliteTodoRepository {
           id: String(row.id),
           userId,
           text: String(row.text),
+          durationMinutes: Number(row.duration_minutes),
           done: Number(row.done) === 1,
           createdAt: Number(row.created_at),
         }),
@@ -32,12 +33,13 @@ export class SqliteTodoRepository {
   async add(todo: TodoAggregate) {
     const data = todo.toPrimitives()
     const stmt = this.db.prepare(
-      'INSERT INTO todos (id, user_id, text, done, created_at) VALUES (?, ?, ?, ?, ?)',
+      'INSERT INTO todos (id, user_id, text, duration_minutes, done, created_at) VALUES (?, ?, ?, ?, ?, ?)',
     )
     stmt.run([
       data.id,
       data.userId,
       data.text,
+      data.durationMinutes,
       data.done ? 1 : 0,
       data.createdAt,
     ])
@@ -48,9 +50,9 @@ export class SqliteTodoRepository {
   async update(todo: TodoAggregate) {
     const data = todo.toPrimitives()
     const stmt = this.db.prepare(
-      'UPDATE todos SET done = ? WHERE id = ? AND user_id = ?',
+      'UPDATE todos SET done = ?, duration_minutes = ? WHERE id = ? AND user_id = ?',
     )
-    stmt.run([data.done ? 1 : 0, data.id, data.userId])
+    stmt.run([data.done ? 1 : 0, data.durationMinutes, data.id, data.userId])
     stmt.free()
     await this.persist(this.db)
   }

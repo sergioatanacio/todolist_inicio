@@ -50,9 +50,14 @@ export class CreateTodoListUseCase {
       ) {
         throw domainError('FORBIDDEN', 'No tienes permisos para crear listas de tareas')
       }
+      const existingInProject = this.todoListRepository.findByProjectId(input.projectId)
+      const maxOrder = existingInProject
+        .filter((item) => item.disponibilidadId === input.disponibilidadId)
+        .reduce((max, item) => Math.max(max, item.orderInDisponibilidad), 0)
       const todoList = TodoListAggregate.create(
         input.projectId,
         input.disponibilidadId,
+        maxOrder + 1,
         input.name,
         input.description,
       )

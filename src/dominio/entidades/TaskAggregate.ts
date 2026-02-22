@@ -11,6 +11,7 @@ import {
   transitionTaskComment,
 } from '../maquinas/task/TaskCommentStateMachine'
 import { TaskDuration } from '../valores_objeto/TaskDuration'
+import { TaskOrder } from '../valores_objeto/TaskOrder'
 import { type TaskStatus, isTaskStatus } from '../valores_objeto/TaskStatus'
 import { TodoText } from '../valores_objeto/TodoText'
 
@@ -37,6 +38,7 @@ type TaskPrimitives = {
   id: string
   projectId: string
   todoListId: string
+  orderInList?: number
   title: string
   durationMinutes: number
   status: TaskStatus
@@ -69,6 +71,7 @@ export class TaskAggregate {
   private readonly _id: string
   private readonly _projectId: string
   private readonly _todoListId: string
+  private readonly _orderInList: TaskOrder
   private readonly _title: TodoText
   private readonly _duration: TaskDuration
   private readonly _status: TaskStatus
@@ -86,6 +89,7 @@ export class TaskAggregate {
     id: string
     projectId: string
     todoListId: string
+    orderInList: TaskOrder
     title: TodoText
     duration: TaskDuration
     status: TaskStatus
@@ -102,6 +106,7 @@ export class TaskAggregate {
     this._id = data.id
     this._projectId = data.projectId
     this._todoListId = data.todoListId
+    this._orderInList = data.orderInList
     this._title = data.title
     this._duration = data.duration
     this._status = data.status
@@ -122,6 +127,7 @@ export class TaskAggregate {
     title: string
     createdByUserId: number
     durationMinutes?: number
+    orderInList?: number
   }) {
     const durationMinutes =
       data.durationMinutes ?? DEFAULT_TASK_DURATION_MINUTES
@@ -131,6 +137,7 @@ export class TaskAggregate {
       id,
       projectId: data.projectId,
       todoListId: data.todoListId,
+      orderInList: TaskOrder.create(data.orderInList ?? 1),
       title: TodoText.create(data.title),
       duration: TaskDuration.create(durationMinutes),
       status: 'PENDING',
@@ -217,6 +224,7 @@ export class TaskAggregate {
       id: data.id,
       projectId: data.projectId,
       todoListId: data.todoListId,
+      orderInList: TaskOrder.create(data.orderInList ?? 1),
       title: TodoText.create(data.title),
       duration: TaskDuration.create(data.durationMinutes),
       status: data.status,
@@ -234,6 +242,13 @@ export class TaskAggregate {
 
   rename(rawTitle: string) {
     return this.cloneWith({ title: TodoText.create(rawTitle) })
+  }
+
+  setOrderInList(actorUserId: number, orderInList: number) {
+    this.ensureActor(actorUserId)
+    return this.cloneWith({
+      orderInList: TaskOrder.create(orderInList),
+    })
   }
 
   changeDuration(actorUserId: number, rawDurationMinutes: number) {
@@ -446,6 +461,7 @@ export class TaskAggregate {
       id: this._id,
       projectId: this._projectId,
       todoListId: this._todoListId,
+      orderInList: this._orderInList.value,
       title: this._title.value,
       durationMinutes: this._duration.value,
       status: this._status,
@@ -464,6 +480,7 @@ export class TaskAggregate {
   private cloneWith(
     patch: Partial<{
       title: TodoText
+      orderInList: TaskOrder
       duration: TaskDuration
       status: TaskStatus
       assigneeUserId: number | null
@@ -482,6 +499,7 @@ export class TaskAggregate {
       projectId: this._projectId,
       todoListId: this._todoListId,
       title: patch.title ?? this._title,
+      orderInList: patch.orderInList ?? this._orderInList,
       duration: patch.duration ?? this._duration,
       status: patch.status ?? this._status,
       assigneeUserId: has('assigneeUserId')
@@ -527,6 +545,10 @@ export class TaskAggregate {
 
   get title() {
     return this._title.value
+  }
+
+  get orderInList() {
+    return this._orderInList.value
   }
 
   get durationMinutes() {

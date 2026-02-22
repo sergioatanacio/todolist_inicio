@@ -1,0 +1,221 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2600" height="1800" viewBox="0 0 2600 1800">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="none" stroke="black"/>
+    </marker>
+  </defs>
+
+  <text x="20" y="30" font-size="24">Low-Fi UI Flow - Workspaces / Proyectos / Disponibilidad / Segmentos / Kanban</text>
+
+  <!-- Screen 1 -->
+  <rect x="20" y="60" width="380" height="260" fill="none" stroke="black"/>
+  <text x="35" y="85" font-size="14">S1 Landing</text>
+  <rect x="40" y="100" width="340" height="40" fill="none" stroke="black"/>
+  <text x="50" y="125" font-size="11">Hero + descripcion corta</text>
+  <rect x="40" y="150" width="160" height="36" fill="none" stroke="black"/>
+  <text x="50" y="172" font-size="11">Boton: Iniciar sesion</text>
+  <rect x="220" y="150" width="160" height="36" fill="none" stroke="black"/>
+  <text x="230" y="172" font-size="11">Boton: Registrarme</text>
+  <text x="40" y="300" font-size="10">URL: /</text>
+
+  <!-- Screen 2 -->
+  <rect x="460" y="60" width="380" height="260" fill="none" stroke="black"/>
+  <text x="475" y="85" font-size="14">S2 Auth</text>
+  <rect x="480" y="100" width="340" height="30" fill="none" stroke="black"/>
+  <text x="490" y="120" font-size="11">Tabs: Login | Registro</text>
+  <rect x="480" y="140" width="340" height="32" fill="none" stroke="black"/>
+  <text x="490" y="160" font-size="11">Input email</text>
+  <rect x="480" y="178" width="340" height="32" fill="none" stroke="black"/>
+  <text x="490" y="198" font-size="11">Input password</text>
+  <rect x="480" y="216" width="340" height="32" fill="none" stroke="black"/>
+  <text x="490" y="236" font-size="11">Boton: Entrar</text>
+  <text x="480" y="300" font-size="10">URL: /auth</text>
+
+  <!-- Screen 3 -->
+  <rect x="900" y="60" width="520" height="320" fill="none" stroke="black"/>
+  <text x="915" y="85" font-size="14">S3 Workspaces</text>
+  <rect x="920" y="100" width="340" height="30" fill="none" stroke="black"/>
+  <text x="930" y="120" font-size="11">Input nombre workspace</text>
+  <rect x="1270" y="100" width="130" height="30" fill="none" stroke="black"/>
+  <text x="1280" y="120" font-size="11">Crear</text>
+  <rect x="920" y="142" width="480" height="66" fill="none" stroke="black"/>
+  <text x="930" y="162" font-size="11">Card workspace A</text>
+  <text x="930" y="180" font-size="11">[Entrar] [Editar] [Eliminar]</text>
+  <rect x="920" y="216" width="480" height="66" fill="none" stroke="black"/>
+  <text x="930" y="236" font-size="11">Card workspace B</text>
+  <text x="930" y="254" font-size="11">[Entrar] [Editar] [Eliminar]</text>
+  <text x="920" y="360" font-size="10">URL: /app/workspaces</text>
+
+  <!-- Screen 4 -->
+  <rect x="1480" y="60" width="560" height="360" fill="none" stroke="black"/>
+  <text x="1495" y="85" font-size="14">S4 Workspace Home (Proyectos)</text>
+  <rect x="1500" y="100" width="150" height="300" fill="none" stroke="black"/>
+  <text x="1510" y="120" font-size="11">Sidebar</text>
+  <text x="1510" y="140" font-size="10">Proyectos</text>
+  <text x="1510" y="158" font-size="10">Miembros</text>
+  <text x="1510" y="176" font-size="10">Roles</text>
+  <rect x="1660" y="100" width="360" height="30" fill="none" stroke="black"/>
+  <text x="1670" y="120" font-size="11">Input nombre proyecto + descripcion</text>
+  <rect x="1660" y="136" width="120" height="28" fill="none" stroke="black"/>
+  <text x="1670" y="154" font-size="11">Crear proyecto</text>
+  <rect x="1660" y="170" width="360" height="90" fill="none" stroke="black"/>
+  <text x="1670" y="190" font-size="11">Card proyecto X</text>
+  <text x="1670" y="208" font-size="11">[Abrir overview]</text>
+  <rect x="1660" y="268" width="360" height="90" fill="none" stroke="black"/>
+  <text x="1670" y="288" font-size="11">Card proyecto Y</text>
+  <text x="1670" y="306" font-size="11">[Abrir overview]</text>
+  <text x="1500" y="408" font-size="10">URL: /app/workspaces/:workspaceId</text>
+
+  <!-- Screen 5 -->
+  <rect x="20" y="450" width="680" height="420" fill="none" stroke="black"/>
+  <text x="35" y="475" font-size="14">S5 Proyecto - Tab Disponibilidades</text>
+  <rect x="40" y="490" width="640" height="30" fill="none" stroke="black"/>
+  <text x="50" y="510" font-size="11">Tabs: Overview | Disponibilidades | Lists | Calendar</text>
+  <rect x="40" y="530" width="310" height="28" fill="none" stroke="black"/>
+  <text x="50" y="548" font-size="11">Input nombre disponibilidad</text>
+  <rect x="360" y="530" width="160" height="28" fill="none" stroke="black"/>
+  <text x="370" y="548" font-size="11">Fecha inicio</text>
+  <rect x="530" y="530" width="150" height="28" fill="none" stroke="black"/>
+  <text x="540" y="548" font-size="11">Fecha fin</text>
+  <rect x="40" y="564" width="130" height="28" fill="none" stroke="black"/>
+  <text x="50" y="582" font-size="11">Crear disp</text>
+  <rect x="40" y="604" width="640" height="76" fill="none" stroke="black"/>
+  <text x="50" y="626" font-size="11">Disponibilidad A</text>
+  <text x="50" y="644" font-size="11">[Segmentos] [Calendar] [Archivar]</text>
+  <rect x="40" y="688" width="640" height="76" fill="none" stroke="black"/>
+  <text x="50" y="710" font-size="11">Disponibilidad B</text>
+  <text x="50" y="728" font-size="11">[Segmentos] [Calendar] [Archivar]</text>
+  <text x="40" y="850" font-size="10">URL: /app/workspaces/:w/projects/:p/disponibilidades</text>
+
+  <!-- Screen 6 -->
+  <rect x="760" y="450" width="760" height="520" fill="none" stroke="black"/>
+  <text x="775" y="475" font-size="14">S6 Editor Segmentos (modal/pantalla)</text>
+  <rect x="780" y="490" width="720" height="30" fill="none" stroke="black"/>
+  <text x="790" y="510" font-size="11">Stepper: Datos base -> Reglas -> Exclusiones -> Preview</text>
+  <rect x="780" y="530" width="350" height="30" fill="none" stroke="black"/>
+  <text x="790" y="550" font-size="11">Input nombre segmento</text>
+  <rect x="1140" y="530" width="360" height="30" fill="none" stroke="black"/>
+  <text x="1150" y="550" font-size="11">Input descripcion opcional</text>
+  <rect x="780" y="566" width="170" height="30" fill="none" stroke="black"/>
+  <text x="790" y="586" font-size="11">Hora inicio</text>
+  <rect x="960" y="566" width="170" height="30" fill="none" stroke="black"/>
+  <text x="970" y="586" font-size="11">Hora fin</text>
+  <rect x="1140" y="566" width="360" height="30" fill="none" stroke="black"/>
+  <text x="1150" y="586" font-size="11">Hint: cruza medianoche si fin &lt; inicio</text>
+
+  <rect x="780" y="610" width="350" height="120" fill="none" stroke="black"/>
+  <text x="790" y="632" font-size="11">Reglas (tabs)</text>
+  <text x="790" y="650" font-size="10">- Fechas especificas (multi date)</text>
+  <text x="790" y="666" font-size="10">- Dias semana (chips 1..7)</text>
+  <text x="790" y="682" font-size="10">- Dias mes (chips 1..31)</text>
+
+  <rect x="1140" y="610" width="360" height="120" fill="none" stroke="black"/>
+  <text x="1150" y="632" font-size="11">Exclusiones</text>
+  <text x="1150" y="650" font-size="10">Date picker + agregar fecha</text>
+  <text x="1150" y="666" font-size="10">Lista de excluidas</text>
+  <text x="1150" y="682" font-size="10">(prioridad sobre reglas)</text>
+
+  <rect x="780" y="740" width="720" height="160" fill="none" stroke="black"/>
+  <text x="790" y="762" font-size="11">Preview</text>
+  <text x="790" y="780" font-size="10">Mini calendario + resumen de dias aplicables</text>
+  <text x="790" y="796" font-size="10">Minutos validos estimados + warnings</text>
+
+  <rect x="780" y="910" width="160" height="30" fill="none" stroke="black"/>
+  <text x="790" y="930" font-size="11">Guardar segmento</text>
+  <rect x="950" y="910" width="120" height="30" fill="none" stroke="black"/>
+  <text x="960" y="930" font-size="11">Cancelar</text>
+  <text x="780" y="958" font-size="10">URL: /app/workspaces/:w/projects/:p/disponibilidades/:d</text>
+
+  <!-- Screen 7 -->
+  <rect x="1580" y="450" width="520" height="420" fill="none" stroke="black"/>
+  <text x="1595" y="475" font-size="14">S7 Proyecto - Tab Lists</text>
+  <rect x="1600" y="490" width="260" height="28" fill="none" stroke="black"/>
+  <text x="1610" y="508" font-size="11">Input nombre lista</text>
+  <rect x="1870" y="490" width="210" height="28" fill="none" stroke="black"/>
+  <text x="1880" y="508" font-size="11">Select disponibilidad</text>
+  <rect x="1600" y="524" width="120" height="28" fill="none" stroke="black"/>
+  <text x="1610" y="542" font-size="11">Crear lista</text>
+  <rect x="1600" y="562" width="480" height="80" fill="none" stroke="black"/>
+  <text x="1610" y="584" font-size="11">Lista Backlog</text>
+  <text x="1610" y="602" font-size="11">[Abrir kanban] [Reasignar disp]</text>
+  <rect x="1600" y="650" width="480" height="80" fill="none" stroke="black"/>
+  <text x="1610" y="672" font-size="11">Lista Sprint</text>
+  <text x="1610" y="690" font-size="11">[Abrir kanban] [Reasignar disp]</text>
+  <text x="1600" y="850" font-size="10">URL: /app/workspaces/:w/projects/:p/lists</text>
+
+  <!-- Screen 8 -->
+  <rect x="20" y="930" width="1220" height="500" fill="none" stroke="black"/>
+  <text x="35" y="955" font-size="14">S8 Kanban por lista</text>
+  <rect x="40" y="970" width="1180" height="34" fill="none" stroke="black"/>
+  <text x="50" y="992" font-size="11">Breadcrumb: Workspace / Proyecto / Lista | [Ir calendario disp] [Ir calendar proyecto]</text>
+  <rect x="40" y="1012" width="420" height="30" fill="none" stroke="black"/>
+  <text x="50" y="1032" font-size="11">Input titulo tarea + duracion min</text>
+  <rect x="470" y="1012" width="120" height="30" fill="none" stroke="black"/>
+  <text x="480" y="1032" font-size="11">Crear tarea</text>
+
+  <rect x="40" y="1050" width="280" height="360" fill="none" stroke="black"/>
+  <text x="50" y="1072" font-size="11">PENDING</text>
+  <rect x="50" y="1080" width="260" height="78" fill="none" stroke="black"/>
+  <text x="58" y="1100" font-size="10">Card tarea A</text>
+  <text x="58" y="1116" font-size="10">[IN_PROGRESS] [DONE] [ABANDONED]</text>
+
+  <rect x="330" y="1050" width="280" height="360" fill="none" stroke="black"/>
+  <text x="340" y="1072" font-size="11">IN_PROGRESS</text>
+  <rect x="340" y="1080" width="260" height="78" fill="none" stroke="black"/>
+  <text x="348" y="1100" font-size="10">Card tarea B</text>
+  <text x="348" y="1116" font-size="10">[PENDING] [DONE] [ABANDONED]</text>
+
+  <rect x="620" y="1050" width="280" height="360" fill="none" stroke="black"/>
+  <text x="630" y="1072" font-size="11">DONE</text>
+
+  <rect x="910" y="1050" width="280" height="360" fill="none" stroke="black"/>
+  <text x="920" y="1072" font-size="11">ABANDONED</text>
+
+  <text x="40" y="1420" font-size="10">URL: /app/workspaces/:w/projects/:p/lists/:listId/kanban</text>
+
+  <!-- Screen 9 -->
+  <rect x="1300" y="930" width="800" height="500" fill="none" stroke="black"/>
+  <text x="1315" y="955" font-size="14">S9 Calendarios</text>
+  <rect x="1320" y="970" width="760" height="210" fill="none" stroke="black"/>
+  <text x="1330" y="992" font-size="12">Calendar proyecto</text>
+  <text x="1330" y="1010" font-size="10">Muestra cantidad de tareas por dia</text>
+  <text x="1330" y="1026" font-size="10">Click dia -> filtra listas/tareas de ese dia</text>
+  <text x="1330" y="1042" font-size="10">URL: /app/workspaces/:w/projects/:p/calendar</text>
+
+  <rect x="1320" y="1190" width="760" height="220" fill="none" stroke="black"/>
+  <text x="1330" y="1212" font-size="12">Calendar disponibilidad</text>
+  <text x="1330" y="1230" font-size="10">Bloques planificados + no planificadas</text>
+  <text x="1330" y="1246" font-size="10">Click bloque -> abre lista/kanban</text>
+  <text x="1330" y="1262" font-size="10">URL: /app/workspaces/:w/projects/:p/disponibilidades/:d/calendar</text>
+
+  <!-- Interaction arrows -->
+  <line x1="200" y1="186" x2="460" y2="186" stroke="black" marker-end="url(#arrow)"/>
+  <text x="280" y="176" font-size="10">click Iniciar sesion</text>
+
+  <line x1="840" y1="236" x2="900" y2="236" stroke="black" marker-end="url(#arrow)"/>
+  <text x="850" y="224" font-size="10">submit auth</text>
+
+  <line x1="1420" y1="190" x2="1480" y2="190" stroke="black" marker-end="url(#arrow)"/>
+  <text x="1430" y="178" font-size="10">click Entrar workspace</text>
+
+  <line x1="1780" y1="260" x2="360" y2="450" stroke="black" marker-end="url(#arrow)"/>
+  <text x="1130" y="330" font-size="10">click Abrir proyecto -> tab disponibilidades</text>
+
+  <line x1="520" y1="644" x2="760" y2="644" stroke="black" marker-end="url(#arrow)"/>
+  <text x="560" y="634" font-size="10">click Segmentos</text>
+
+  <line x1="1260" y1="930" x2="1580" y2="690" stroke="black" marker-end="url(#arrow)"/>
+  <text x="1320" y="840" font-size="10">guardar segmento -> volver tab lists</text>
+
+  <line x1="1840" y1="730" x2="620" y2="930" stroke="black" marker-end="url(#arrow)"/>
+  <text x="1220" y="840" font-size="10">click Abrir kanban</text>
+
+  <line x1="940" y1="970" x2="1480" y2="970" stroke="black" marker-end="url(#arrow)"/>
+  <text x="1120" y="958" font-size="10">click Ir calendar proyecto</text>
+
+  <line x1="180" y1="680" x2="1380" y2="1200" stroke="black" marker-end="url(#arrow)"/>
+  <text x="820" y="940" font-size="10">click Calendar en disponibilidad</text>
+
+  <line x1="1700" y1="1290" x2="1180" y2="1100" stroke="black" marker-end="url(#arrow)"/>
+  <text x="1410" y="1170" font-size="10">click bloque -> abre kanban lista</text>
+</svg>

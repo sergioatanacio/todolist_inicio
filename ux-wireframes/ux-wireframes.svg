@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1400" viewBox="0 0 2000 1400">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="none" stroke="black"/>
+    </marker>
+  </defs>
+
+  <text x="24" y="34" font-size="24">Wireframes UX V2 - Contexto: Workspace / Proyecto / Disponibilidad / Lista / Tareas</text>
+
+  <rect x="16" y="54" width="1968" height="260" fill="none" stroke="black"/>
+  <text x="28" y="82" font-size="18">1) Flujo principal</text>
+
+  <rect x="36" y="108" width="300" height="184" fill="none" stroke="black"/>
+  <text x="52" y="134" font-size="15">Landing</text>
+  <text x="52" y="158" font-size="12">Navegacion: ir a registro o login</text>
+  <text x="52" y="178" font-size="12">Accion: entrar al flujo de autenticacion</text>
+  <text x="52" y="198" font-size="12">URL: /</text>
+
+  <rect x="386" y="108" width="300" height="184" fill="none" stroke="black"/>
+  <text x="402" y="134" font-size="15">Auth</text>
+  <text x="402" y="158" font-size="12">Navegacion: tabs Login / Registro</text>
+  <text x="402" y="178" font-size="12">Accion: autenticar usuario</text>
+  <text x="402" y="198" font-size="12">URL: /auth</text>
+
+  <rect x="736" y="108" width="330" height="184" fill="none" stroke="black"/>
+  <text x="752" y="134" font-size="15">Selector de Workspace</text>
+  <text x="752" y="158" font-size="12">Navegacion: lista de workspaces</text>
+  <text x="752" y="178" font-size="12">Accion: crear, editar, entrar</text>
+  <text x="752" y="198" font-size="12">URL: /app/workspaces</text>
+
+  <rect x="1116" y="108" width="380" height="184" fill="none" stroke="black"/>
+  <text x="1132" y="134" font-size="15">Dashboard de Workspace</text>
+  <text x="1132" y="158" font-size="12">Navegacion: proyectos, miembros, roles, ajustes</text>
+  <text x="1132" y="178" font-size="12">Accion: abrir proyecto</text>
+  <text x="1132" y="198" font-size="12">URL: /app/workspaces/:workspaceId</text>
+
+  <rect x="1546" y="108" width="420" height="184" fill="none" stroke="black"/>
+  <text x="1562" y="134" font-size="15">Proyecto activo</text>
+  <text x="1562" y="158" font-size="12">Navegacion: Overview | Disponibilidades | Listas | Kanban | Calendar</text>
+  <text x="1562" y="178" font-size="12">Accion: operar dentro del proyecto</text>
+  <text x="1562" y="198" font-size="12">URL: /app/workspaces/:w/projects/:p/*</text>
+
+  <line x1="336" y1="198" x2="386" y2="198" stroke="black" marker-end="url(#arrow)"/>
+  <line x1="686" y1="198" x2="736" y2="198" stroke="black" marker-end="url(#arrow)"/>
+  <line x1="1066" y1="198" x2="1116" y2="198" stroke="black" marker-end="url(#arrow)"/>
+  <line x1="1496" y1="198" x2="1546" y2="198" stroke="black" marker-end="url(#arrow)"/>
+
+  <rect x="16" y="334" width="1968" height="610" fill="none" stroke="black"/>
+  <text x="28" y="362" font-size="18">2) Modulos internos de proyecto</text>
+
+  <rect x="36" y="390" width="450" height="240" fill="none" stroke="black"/>
+  <text x="52" y="416" font-size="15">A. Disponibilidades</text>
+  <text x="52" y="440" font-size="12">Navegacion: lista de disponibilidades del proyecto</text>
+  <text x="52" y="460" font-size="12">Accion: crear, editar, archivar/reactivar</text>
+  <text x="52" y="480" font-size="12">Regla: nombre obligatorio, rango fecha inicio/fin</text>
+  <text x="52" y="500" font-size="12">URL: /app/workspaces/:w/projects/:p/disponibilidades</text>
+
+  <rect x="516" y="390" width="450" height="240" fill="none" stroke="black"/>
+  <text x="532" y="416" font-size="15">B. Segmentos horarios</text>
+  <text x="532" y="440" font-size="12">Navegacion: detalle de una disponibilidad</text>
+  <text x="532" y="460" font-size="12">Accion: agregar/editar/eliminar segmentos</text>
+  <text x="532" y="480" font-size="12">Regla: fechas exactas + dias semana + dias mes + exclusiones</text>
+  <text x="532" y="500" font-size="12">URL: /app/workspaces/:w/projects/:p/disponibilidades/:d</text>
+
+  <rect x="996" y="390" width="450" height="240" fill="none" stroke="black"/>
+  <text x="1012" y="416" font-size="15">C. Listas de tareas</text>
+  <text x="1012" y="440" font-size="12">Navegacion: listas del proyecto</text>
+  <text x="1012" y="460" font-size="12">Accion: crear/editar/reordenar/reasignar disponibilidad</text>
+  <text x="1012" y="480" font-size="12">Regla: toda lista pertenece a una disponibilidad</text>
+  <text x="1012" y="500" font-size="12">URL: /app/workspaces/:w/projects/:p/lists</text>
+
+  <rect x="1476" y="390" width="490" height="240" fill="none" stroke="black"/>
+  <text x="1492" y="416" font-size="15">D. Kanban por lista</text>
+  <text x="1492" y="440" font-size="12">Navegacion: abrir lista especifica</text>
+  <text x="1492" y="460" font-size="12">Accion: mover tarea entre estados, editar, comentar</text>
+  <text x="1492" y="480" font-size="12">Regla: estados PENDING / IN_PROGRESS / DONE / ABANDONED</text>
+  <text x="1492" y="500" font-size="12">URL: /app/workspaces/:w/projects/:p/lists/:listId/kanban</text>
+
+  <rect x="36" y="670" width="650" height="248" fill="none" stroke="black"/>
+  <text x="52" y="696" font-size="15">E. Calendar de disponibilidad</text>
+  <text x="52" y="720" font-size="12">Navegacion: vista por disponibilidad</text>
+  <text x="52" y="740" font-size="12">Accion: revisar tiempo usable y tareas ubicadas</text>
+  <text x="52" y="760" font-size="12">Regla: union de segmentos, con exclusion prioritaria</text>
+  <text x="52" y="780" font-size="12">URL: /app/workspaces/:w/projects/:p/disponibilidades/:d/calendar</text>
+
+  <rect x="716" y="670" width="650" height="248" fill="none" stroke="black"/>
+  <text x="732" y="696" font-size="15">F. Calendar de proyecto</text>
+  <text x="732" y="720" font-size="12">Navegacion: vista global del proyecto</text>
+  <text x="732" y="740" font-size="12">Accion: ver carga de tareas por dia</text>
+  <text x="732" y="760" font-size="12">Regla: agrega planificacion de todas las disponibilidades</text>
+  <text x="732" y="780" font-size="12">URL: /app/workspaces/:w/projects/:p/calendar</text>
+
+  <rect x="1396" y="670" width="570" height="248" fill="none" stroke="black"/>
+  <text x="1412" y="696" font-size="15">G. Contexto fijo (header)</text>
+  <text x="1412" y="720" font-size="12">Workspace: nombre + id</text>
+  <text x="1412" y="740" font-size="12">Proyecto: nombre + id</text>
+  <text x="1412" y="760" font-size="12">Lista activa: id + nombre (si aplica)</text>
+  <text x="1412" y="780" font-size="12">Permisos efectivos del usuario (RBAC)</text>
+
+  <line x1="486" y1="500" x2="516" y2="500" stroke="black" marker-end="url(#arrow)"/>
+  <line x1="966" y1="500" x2="996" y2="500" stroke="black" marker-end="url(#arrow)"/>
+  <line x1="1446" y1="500" x2="1476" y2="500" stroke="black" marker-end="url(#arrow)"/>
+  <line x1="261" y1="630" x2="261" y2="670" stroke="black" marker-end="url(#arrow)"/>
+  <line x1="1221" y1="630" x2="1041" y2="670" stroke="black" marker-end="url(#arrow)"/>
+  <line x1="1721" y1="630" x2="1721" y2="670" stroke="black" marker-end="url(#arrow)"/>
+
+  <rect x="16" y="964" width="1968" height="420" fill="none" stroke="black"/>
+  <text x="28" y="992" font-size="18">3) Wireframe detalle: pantalla Kanban de lista</text>
+
+  <rect x="36" y="1018" width="1928" height="346" fill="none" stroke="black"/>
+  <rect x="56" y="1038" width="1888" height="48" fill="none" stroke="black"/>
+  <text x="72" y="1068" font-size="12">Breadcrumb: Workspace / Proyecto / Lista | Disponibilidad asociada | Acciones: editar lista, reordenar, ir al calendar</text>
+
+  <rect x="56" y="1108" width="315" height="236" fill="none" stroke="black"/>
+  <text x="70" y="1134" font-size="13">PENDING</text>
+  <text x="70" y="1156" font-size="11">[Card] titulo + duracion + asignado</text>
+
+  <rect x="391" y="1108" width="315" height="236" fill="none" stroke="black"/>
+  <text x="405" y="1134" font-size="13">IN_PROGRESS</text>
+
+  <rect x="726" y="1108" width="315" height="236" fill="none" stroke="black"/>
+  <text x="740" y="1134" font-size="13">DONE</text>
+
+  <rect x="1061" y="1108" width="315" height="236" fill="none" stroke="black"/>
+  <text x="1075" y="1134" font-size="13">ABANDONED</text>
+
+  <rect x="1396" y="1108" width="548" height="236" fill="none" stroke="black"/>
+  <text x="1412" y="1134" font-size="13">Panel lateral: tarea seleccionada</text>
+  <text x="1412" y="1156" font-size="11">Editar: titulo, duracion, asignado, estado</text>
+  <text x="1412" y="1174" font-size="11">Comentarios: hilo (responder/editar/borrar)</text>
+  <text x="1412" y="1192" font-size="11">Historial: usuario que cambia estado + fecha</text>
+
+  <rect x="16" y="1388" width="1968" height="10" fill="none" stroke="black"/>
+</svg>

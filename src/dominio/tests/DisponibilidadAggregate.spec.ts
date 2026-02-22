@@ -62,4 +62,24 @@ export const disponibilidadAggregateSpec = () => {
         event.type === 'availability.reactivated',
     )
   assert(lifecycleEvents.length === 2, 'Expected lifecycle transition events')
+
+  const withExclusion = DisponibilidadAggregate.create({
+    projectId: 'prj-2',
+    name: 'Con exclusion',
+    startDate: '2026-02-01',
+    endDate: '2026-02-28',
+    segments: [
+      {
+        name: 'Laboral excluye lunes',
+        startTime: '09:00',
+        endTime: '10:00',
+        daysOfWeek: [1],
+        exclusionDates: ['2026-02-02'],
+      },
+    ],
+  })
+  assert(
+    withExclusion.calcularMinutosValidos() === 180,
+    'Expected 3 Mondays x 60 minutes because one Monday is excluded',
+  )
 }

@@ -29,8 +29,12 @@ export const taskAggregateSpec = () => {
   })
   assert(task.durationMinutes > 0, 'Task duration must be greater than 0')
   assert(task.statusHistory.length === 0, 'Task must start without status history')
+  assert(task.orderInList === 1, 'Task should start with order 1 by default')
 
-  const inProgress = task.changeStatus(1, 'IN_PROGRESS')
+  const reordered = task.setOrderInList(1, 4)
+  assert(reordered.orderInList === 4, 'Task order should be updated')
+
+  const inProgress = reordered.changeStatus(1, 'IN_PROGRESS')
   assert(inProgress.status === 'IN_PROGRESS', 'Task should move to IN_PROGRESS')
   assert(
     inProgress.statusHistory.length === 1,

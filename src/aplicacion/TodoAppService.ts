@@ -9,7 +9,7 @@ export class TodoAppService {
   }
 
   async add(userId: number, text: string) {
-    const todo = TodoAggregate.create(userId, text)
+    const todo = TodoAggregate.create(userId, text, 30)
     await this.todoRepo.add(todo)
     return todo
   }

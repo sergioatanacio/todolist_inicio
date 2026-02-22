@@ -7,12 +7,14 @@ import { WorkspaceAppService } from './WorkspaceAppService'
 import { ProjectAppService } from './ProjectAppService'
 import { DisponibilidadAppService } from './DisponibilidadAppService'
 import { TodoListAppService } from './TodoListAppService'
+import { TaskPlanningAppService } from './TaskPlanningAppService'
 import { SqliteUserRepository } from '../infra/SqliteUserRepository'
 import { SqliteTodoRepository } from '../infra/SqliteTodoRepository'
 import { SqliteWorkspaceRepository } from '../infra/SqliteWorkspaceRepository'
 import { SqliteProjectRepository } from '../infra/SqliteProjectRepository'
 import { SqliteDisponibilidadRepository } from '../infra/SqliteDisponibilidadRepository'
 import { SqliteTodoListRepository } from '../infra/SqliteTodoListRepository'
+import { SqliteTaskRepository } from '../infra/SqliteTaskRepository'
 import { InMemoryDomainEventBus } from '../infra/InMemoryDomainEventBus'
 import { NoopUnitOfWork } from '../infra/NoopUnitOfWork'
 import type { TodoAggregate } from '../dominio/entidades/TodoAggregate'
@@ -24,6 +26,7 @@ export type AppServices = {
   project: ProjectAppService
   disponibilidad: DisponibilidadAppService
   todoList: TodoListAppService
+  taskPlanning: TaskPlanningAppService
 }
 
 export const createAppServices = (
@@ -37,6 +40,7 @@ export const createAppServices = (
   const projectRepo = new SqliteProjectRepository(db, persist)
   const disponibilidadRepo = new SqliteDisponibilidadRepository(db, persist)
   const todoListRepo = new SqliteTodoListRepository(db, persist)
+  const taskRepo = new SqliteTaskRepository(db, persist)
   const eventBus = new InMemoryDomainEventBus()
   const unitOfWork = new NoopUnitOfWork()
   return {
@@ -61,6 +65,14 @@ export const createAppServices = (
       workspaceRepo,
       projectRepo,
       disponibilidadRepo,
+      unitOfWork,
+    ),
+    taskPlanning: new TaskPlanningAppService(
+      taskRepo,
+      todoListRepo,
+      disponibilidadRepo,
+      projectRepo,
+      workspaceRepo,
       unitOfWork,
     ),
   }
