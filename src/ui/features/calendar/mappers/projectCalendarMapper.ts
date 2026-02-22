@@ -3,6 +3,7 @@ import { monthTitle, startOfCalendarGrid, toIsoDate } from '../utils/dateUtils'
 
 export const mapProjectCalendarToMonth = (
   calendar: Record<string, number>,
+  previewTitlesByDay: Record<string, string[]> = {},
   referenceDate = new Date(),
 ): CalendarMonthVm => {
   const year = referenceDate.getFullYear()
@@ -20,6 +21,8 @@ export const mapProjectCalendarToMonth = (
       dayNumber: current.getDate(),
       inCurrentMonth: current.getMonth() === month,
       taskCount: calendar[isoDate] ?? 0,
+      previewTitles: (previewTitlesByDay[isoDate] ?? []).slice(0, 2),
+      previewOverflow: Math.max((previewTitlesByDay[isoDate] ?? []).length - 2, 0),
     })
   }
 

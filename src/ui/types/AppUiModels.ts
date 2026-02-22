@@ -55,6 +55,21 @@ export type AvailabilityPlanVm = {
   unplannedTaskIds: string[]
 }
 
+export type ProjectCalendarVm = {
+  plannedBlocks: Array<{
+    taskId: string
+    taskTitle: string
+    todoListId: string
+    todoListName: string
+    disponibilidadId: string
+    scheduledStart: number
+    scheduledEnd: number
+    durationMinutes: number
+  }>
+  tasksPerDay: Record<string, number>
+  unplannedTaskIds: string[]
+}
+
 export type UiErrors = {
   auth: string | null
   workspace: string | null
@@ -86,7 +101,7 @@ export type AppControllerState = {
   disponibilidades: DisponibilidadVm[]
   lists: TodoListVm[]
   kanban: Record<TaskStatus, TaskVm[]>
-  projectCalendar: Record<string, number>
+  projectCalendar: ProjectCalendarVm
   availabilityPlan: AvailabilityPlanVm | null
   context: AppControllerContextIds
 }

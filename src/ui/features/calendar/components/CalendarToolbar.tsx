@@ -18,7 +18,7 @@ export function CalendarToolbar({
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-300 bg-slate-50 p-3">
       <div>
         <h2 className="text-base font-semibold text-slate-900">{title}</h2>
-        <p className="text-xs text-slate-600">Vista y navegación de calendario.</p>
+        <p className="text-xs text-slate-600">Vista y navegacion de calendario.</p>
       </div>
       <div className="flex items-center gap-2">
         <button

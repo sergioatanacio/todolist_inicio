@@ -18,14 +18,26 @@ export type SchedulingResult = {
   tasksPerDay: Record<string, number>
 }
 
+export type SchedulingOptions = {
+  nowMs?: number
+}
+
 const toIsoDateUtc = (timestamp: number) =>
   new Date(timestamp).toISOString().slice(0, 10)
+
+const MINUTE_MS = 60 * 1000
+const truncateToMinute = (timestamp: number) =>
+  Math.floor(timestamp / MINUTE_MS) * MINUTE_MS
+
+const isSchedulableStatus = (status: TaskAggregate['status']) =>
+  status === 'PENDING' || status === 'IN_PROGRESS'
 
 export class SchedulingPolicy {
   buildPlan(input: {
     disponibilidad: DisponibilidadAggregate
     todoLists: TodoListAggregate[]
     tasks: TaskAggregate[]
+    options?: SchedulingOptions
   }): SchedulingResult {
     const { disponibilidad } = input
     if (disponibilidad.state !== 'ACTIVE') {
@@ -40,65 +52,110 @@ export class SchedulingPolicy {
       .sort((a, b) => a.orderInDisponibilidad - b.orderInDisponibilidad)
 
     const tasksByList = new Map<string, TaskAggregate[]>()
-    for (const task of input.tasks) {
+    for (const task of input.tasks.filter((item) => isSchedulableStatus(item.status))) {
       const existing = tasksByList.get(task.todoListId) ?? []
       existing.push(task)
       tasksByList.set(task.todoListId, existing)
     }
-    for (const list of lists) {
-      const ordered = (tasksByList.get(list.id) ?? []).sort(
-        (a, b) => a.orderInList - b.orderInList,
-      )
-      tasksByList.set(list.id, ordered)
+    for (const [listId, items] of tasksByList.entries()) {
+      const ordered = items.sort((a, b) => a.orderInList - b.orderInList)
+      tasksByList.set(listId, ordered)
     }
 
     const intervals = disponibilidad.calcularIntervalosValidos()
     const plannedBlocks: ScheduledTaskBlock[] = []
     const unplannedTaskIds: string[] = []
+    const nowMs = truncateToMinute(input.options?.nowMs ?? Date.now())
+
+    const clippedIntervals = intervals
+      .map((interval) => ({
+        startMs: Math.max(interval.startMs, nowMs),
+        endMs: interval.endMs,
+      }))
+      .filter((interval) => interval.startMs < interval.endMs)
 
     let intervalIndex = 0
     let cursor =
-      intervals.length > 0 ? intervals[0].startMs : Number.POSITIVE_INFINITY
+      clippedIntervals.length > 0
+        ? clippedIntervals[0].startMs
+        : Number.POSITIVE_INFINITY
 
-    const moveCursorToFit = (durationMs: number) => {
-      while (intervalIndex < intervals.length) {
-        const current = intervals[intervalIndex]
-        if (cursor < current.startMs) cursor = current.startMs
-        if (cursor + durationMs <= current.endMs) return true
+    const moveCursorToNextAvailable = () => {
+      while (intervalIndex < clippedIntervals.length) {
+        const current = clippedIntervals[intervalIndex]
+        if (cursor < current.startMs) {
+          cursor = current.startMs
+        }
+        if (cursor < current.endMs) {
+          return true
+        }
         intervalIndex += 1
-        if (intervalIndex < intervals.length) {
-          cursor = intervals[intervalIndex].startMs
+        if (intervalIndex < clippedIntervals.length) {
+          cursor = clippedIntervals[intervalIndex].startMs
         }
       }
       return false
     }
 
-    for (const list of lists) {
-      const tasks = tasksByList.get(list.id) ?? []
-      for (const task of tasks) {
-        const durationMs = task.durationMinutes * 60 * 1000
-        if (!moveCursorToFit(durationMs)) {
+    const inProgressQueue = lists.flatMap((list) =>
+      (tasksByList.get(list.id) ?? [])
+        .filter((task) => task.status === 'IN_PROGRESS')
+        .sort((a, b) => a.orderInList - b.orderInList)
+        .map((task) => ({ list, task })),
+    )
+    const pendingQueue = lists.flatMap((list) =>
+      (tasksByList.get(list.id) ?? [])
+        .filter((task) => task.status === 'PENDING')
+        .sort((a, b) => a.orderInList - b.orderInList)
+        .map((task) => ({ list, task })),
+    )
+    const taskQueue = [...inProgressQueue, ...pendingQueue]
+
+    const dayBlockCounts = new Map<string, number>()
+
+    const addPlannedBlock = (
+      task: TaskAggregate,
+      listId: string,
+      start: number,
+      end: number,
+    ) => {
+      const blockDurationMinutes = Math.floor((end - start) / MINUTE_MS)
+      if (blockDurationMinutes <= 0) return
+      plannedBlocks.push({
+        taskId: task.id,
+        todoListId: listId,
+        disponibilidadId: disponibilidad.id,
+        scheduledStart: start,
+        scheduledEnd: end,
+        durationMinutes: blockDurationMinutes,
+      })
+      const day = toIsoDateUtc(start)
+      dayBlockCounts.set(day, (dayBlockCounts.get(day) ?? 0) + 1)
+    }
+
+    for (const { list, task } of taskQueue) {
+      let remainingMs = task.durationMinutes * MINUTE_MS
+      if (remainingMs <= 0) continue
+
+      while (remainingMs > 0) {
+        if (!moveCursorToNextAvailable()) {
           unplannedTaskIds.push(task.id)
-          continue
+          break
         }
+        const current = clippedIntervals[intervalIndex]
+        const availableMs = current.endMs - cursor
+        const consumedMs = Math.min(remainingMs, availableMs)
         const start = cursor
-        const end = cursor + durationMs
-        plannedBlocks.push({
-          taskId: task.id,
-          todoListId: list.id,
-          disponibilidadId: disponibilidad.id,
-          scheduledStart: start,
-          scheduledEnd: end,
-          durationMinutes: task.durationMinutes,
-        })
+        const end = cursor + consumedMs
+        addPlannedBlock(task, list.id, start, end)
         cursor = end
+        remainingMs -= consumedMs
       }
     }
 
     const tasksPerDay: Record<string, number> = {}
-    for (const block of plannedBlocks) {
-      const day = toIsoDateUtc(block.scheduledStart)
-      tasksPerDay[day] = (tasksPerDay[day] ?? 0) + 1
+    for (const [day, blockCount] of dayBlockCounts.entries()) {
+      tasksPerDay[day] = blockCount
     }
 
     return { plannedBlocks, unplannedTaskIds, tasksPerDay }

@@ -22,3 +22,12 @@ export const startOfCalendarGrid = (year: number, month: number): Date => {
   start.setDate(firstDay.getDate() + diff)
   return start
 }
+
+export const startOfMonth = (date: Date): Date =>
+  new Date(date.getFullYear(), date.getMonth(), 1)
+
+export const addMonths = (date: Date, delta: number): Date =>
+  new Date(date.getFullYear(), date.getMonth() + delta, 1)
+
+export const toIsoDateUtc = (timestamp: number): string =>
+  new Date(timestamp).toISOString().slice(0, 10)

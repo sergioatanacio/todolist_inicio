@@ -14,7 +14,7 @@ export function ProjectListView({
   if (entries.length === 0) {
     return (
       <div className="rounded-xl border border-slate-300 bg-white p-3 text-sm text-slate-500">
-        Sin tareas planificadas para este proyecto.
+        Sin bloques planificados para este proyecto.
       </div>
     )
   }
@@ -33,7 +33,7 @@ export function ProjectListView({
                   : 'border-slate-300 bg-white'
               }`}
             >
-              <span className="font-semibold">{day}</span> · {count} tareas
+              <span className="font-semibold">{day}</span> · {count} bloques
             </button>
           </li>
         ))}

@@ -15,6 +15,15 @@ const assert = (condition: boolean, message: string) => {
   if (!condition) throw new Error(message)
 }
 
+const isoFromNow = (daysOffset: number): string => {
+  const now = new Date()
+  const date = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0),
+  )
+  date.setUTCDate(date.getUTCDate() + daysOffset)
+  return date.toISOString().slice(0, 10)
+}
+
 class InMemoryUnitOfWork implements UnitOfWork {
   async runInTransaction<T>(work: () => T | Promise<T>) {
     return work()
@@ -101,17 +110,18 @@ export const taskPlanningUseCasesAppSpec = async () => {
   workspaceRepo.save(workspace)
   const project = ProjectAggregate.create(workspace.id, 1, 'Proyecto QA', 'Demo')
   projectRepo.save(project)
+  const targetDate = isoFromNow(1)
   const disponibilidad = DisponibilidadAggregate.create({
     projectId: project.id,
     name: 'Disp',
-    startDate: '2026-02-02',
-    endDate: '2026-02-02',
+    startDate: targetDate,
+    endDate: targetDate,
     segments: [
       {
         name: 'Manana',
         startTime: '09:00',
         endTime: '12:00',
-        specificDates: ['2026-02-02'],
+        specificDates: [targetDate],
       },
     ],
   })
@@ -167,4 +177,18 @@ export const taskPlanningUseCasesAppSpec = async () => {
 
   const calendar = service.buildDisponibilidadCalendar(disponibilidad.id)
   assert(calendar.plannedBlocks.length >= 1, 'Calendar should plan at least one task')
+
+  const projectCalendar = service.buildProjectCalendarDetailed(project.id)
+  assert(
+    projectCalendar.plannedBlocks.length >= 1,
+    'Project calendar should include planned blocks',
+  )
+  assert(
+    projectCalendar.plannedBlocks[0].taskTitle.length >= 1,
+    'Project planned block should include task title',
+  )
+  assert(
+    projectCalendar.plannedBlocks[0].todoListName.length >= 1,
+    'Project planned block should include todo list name',
+  )
 }

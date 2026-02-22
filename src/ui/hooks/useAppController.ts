@@ -125,7 +125,9 @@ export const useAppController = (): AppController => {
     }
 
     if (route.kind === 'project' && route.tab === 'calendar') {
-      setters.setProjectCalendar(services.taskPlanning.buildProjectCalendar(route.projectId))
+      setters.setProjectCalendar(
+        services.taskPlanning.buildProjectCalendarDetailed(route.projectId, Date.now()),
+      )
     } else {
       clearers.clearProjectCalendar()
     }

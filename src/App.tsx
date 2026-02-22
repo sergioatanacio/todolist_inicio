@@ -215,7 +215,6 @@ function App() {
       {state.route.kind === 'project' && state.route.tab === 'calendar' ? (
         <ProjectCalendarScreen
           calendar={state.projectCalendar}
-          lists={state.lists}
           onOpenKanban={(listId) =>
             actions.navigate(
               `/app/workspaces/${currentWorkspaceId}/projects/${currentProjectId}/lists/${listId}/kanban`,

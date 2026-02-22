@@ -6,6 +6,7 @@ import { SchedulingPolicy } from '../../../dominio/servicios/SchedulingPolicy'
 
 type BuildDisponibilidadCalendarInput = {
   disponibilidadId: string
+  nowMs?: number
 }
 
 export class BuildDisponibilidadCalendarUseCase {
@@ -33,6 +34,7 @@ export class BuildDisponibilidadCalendarUseCase {
       disponibilidad,
       todoLists,
       tasks,
+      options: { nowMs: input.nowMs },
     })
   }
 }

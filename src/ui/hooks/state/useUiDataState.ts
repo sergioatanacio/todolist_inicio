@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import type { AppControllerState, TaskStatus } from '../../types/AppUiModels'
+import type { AppControllerState, ProjectCalendarVm, TaskStatus } from '../../types/AppUiModels'
 
 const createEmptyKanban = (): Record<TaskStatus, AppControllerState['kanban'][TaskStatus]> => ({
   PENDING: [],
@@ -9,6 +9,12 @@ const createEmptyKanban = (): Record<TaskStatus, AppControllerState['kanban'][Ta
 })
 
 export const useUiDataState = () => {
+  const emptyProjectCalendar: ProjectCalendarVm = {
+    tasksPerDay: {},
+    plannedBlocks: [],
+    unplannedTaskIds: [],
+  }
+
   const [workspaces, setWorkspaces] = useState<AppControllerState['workspaces']>([])
   const [projects, setProjects] = useState<AppControllerState['projects']>([])
   const [disponibilidades, setDisponibilidades] = useState<
@@ -16,7 +22,9 @@ export const useUiDataState = () => {
   >([])
   const [lists, setLists] = useState<AppControllerState['lists']>([])
   const [kanban, setKanban] = useState<AppControllerState['kanban']>(createEmptyKanban)
-  const [projectCalendar, setProjectCalendar] = useState<Record<string, number>>({})
+  const [projectCalendar, setProjectCalendar] = useState<ProjectCalendarVm>(
+    emptyProjectCalendar,
+  )
   const [availabilityPlan, setAvailabilityPlan] = useState<
     AppControllerState['availabilityPlan']
   >(null)
@@ -55,7 +63,7 @@ export const useUiDataState = () => {
         setLists([])
       },
       clearKanban: () => setKanban(createEmptyKanban()),
-      clearProjectCalendar: () => setProjectCalendar({}),
+      clearProjectCalendar: () => setProjectCalendar(emptyProjectCalendar),
       clearAvailabilityPlan: () => setAvailabilityPlan(null),
     }),
     [],

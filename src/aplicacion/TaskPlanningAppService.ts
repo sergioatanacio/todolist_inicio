@@ -81,12 +81,16 @@ export class TaskPlanningAppService {
     )
   }
 
-  buildDisponibilidadCalendar(disponibilidadId: string) {
-    return this.buildDisponibilidadCalendarUseCase.execute({ disponibilidadId })
+  buildDisponibilidadCalendar(disponibilidadId: string, nowMs?: number) {
+    return this.buildDisponibilidadCalendarUseCase.execute({ disponibilidadId, nowMs })
   }
 
-  buildProjectCalendar(projectId: string) {
-    return this.buildProjectCalendarUseCase.execute({ projectId })
+  buildProjectCalendar(projectId: string, nowMs?: number) {
+    return this.buildProjectCalendarUseCase.execute({ projectId, nowMs })
+  }
+
+  buildProjectCalendarDetailed(projectId: string, nowMs?: number) {
+    return this.buildProjectCalendarUseCase.executeDetailed({ projectId, nowMs })
   }
 
   getKanbanByTodoList(todoListId: string) {

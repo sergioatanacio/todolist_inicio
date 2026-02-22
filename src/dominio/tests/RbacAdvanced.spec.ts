@@ -70,14 +70,24 @@ const crossProjectAccessCase = () => {
   const workspace = WorkspaceAggregate.create(10, 'Cross')
   const withMember = workspace.inviteMember(10, 20)
 
-  const projectA = ProjectAggregate.create('ws-cross', 10, 'A', 'A desc')
+  const projectA = ProjectAggregate.create(
+    workspace.id,
+    10,
+    'Proyecto A',
+    'Descripcion A',
+  )
   const projectAWithMember = projectA.grantAccess({
     actorUserId: 10,
     targetUserId: 20,
     roleId: PROJECT_ROLE_IDS.CONTRIBUTOR,
     targetIsWorkspaceMember: true,
   })
-  const projectB = ProjectAggregate.create('ws-cross', 10, 'B', 'B desc')
+  const projectB = ProjectAggregate.create(
+    workspace.id,
+    10,
+    'Proyecto B',
+    'Descripcion B',
+  )
 
   const canCreateOnA = AuthorizationPolicy.canInProject({
     workspace: withMember,

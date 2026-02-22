@@ -6,6 +6,8 @@ export type CalendarDayCellVm = {
   dayNumber: number
   inCurrentMonth: boolean
   taskCount: number
+  previewTitles: string[]
+  previewOverflow: number
 }
 
 export type CalendarMonthVm = {

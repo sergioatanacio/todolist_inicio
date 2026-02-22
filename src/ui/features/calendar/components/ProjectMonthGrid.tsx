@@ -40,8 +40,20 @@ export function ProjectMonthGrid({
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold">{cell.dayNumber}</span>
-                <span className="text-[10px] text-slate-600">{cell.taskCount} tareas</span>
+                <span className="text-[10px] text-slate-600">{cell.taskCount} bloques</span>
               </div>
+              {cell.previewTitles.length > 0 ? (
+                <div className="mt-1 space-y-0.5">
+                  {cell.previewTitles.map((title) => (
+                    <p key={`${cell.isoDate}-${title}`} className="truncate text-[10px] text-slate-700">
+                      {title}
+                    </p>
+                  ))}
+                  {cell.previewOverflow > 0 ? (
+                    <p className="text-[10px] text-slate-500">+{cell.previewOverflow} más</p>
+                  ) : null}
+                </div>
+              ) : null}
             </button>
           )
         })}

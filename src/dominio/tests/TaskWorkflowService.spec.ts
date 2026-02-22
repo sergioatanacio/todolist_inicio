@@ -28,7 +28,7 @@ export const taskWorkflowServiceSpec = () => {
 
   const workspace = WorkspaceAggregate.create(1, 'W')
   const workspaceWithMember = workspace.inviteMember(1, 2)
-  const project = ProjectAggregate.create('ws-1', 1, 'P', 'D')
+  const project = ProjectAggregate.create(workspace.id, 1, 'Proyecto', 'D')
   const projectWithMember = project.grantAccess({
     actorUserId: 1,
     targetUserId: 2,
