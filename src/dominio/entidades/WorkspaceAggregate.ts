@@ -3,6 +3,12 @@ import {
   type WorkspaceDomainEvent,
   workspaceEvents,
 } from '../eventos/WorkspaceEvents'
+import {
+  memberActiveFlagFromState,
+  memberStateFromActiveFlag,
+  transitionWorkspaceMember,
+} from '../maquinas/workspace/WorkspaceMemberStateMachine'
+import { transitionWorkspaceOwnership } from '../maquinas/workspace/WorkspaceOwnershipStateMachine'
 import { type Permission, isPermission } from '../valores_objeto/Permission'
 
 export const SYSTEM_ROLE_IDS = {
@@ -219,6 +225,10 @@ export class WorkspaceAggregate {
     if (!membersByUser.has(data.ownerUserId)) {
       throw domainError('INVALID_STATE', 'El propietario debe ser miembro del workspace')
     }
+    const ownerMember = data.members.find((member) => member.userId === data.ownerUserId)
+    if (!ownerMember?.active) {
+      throw domainError('INVALID_STATE', 'El propietario debe ser miembro activo')
+    }
 
     const normalizedAssignments = data.assignments.map((assignment) => {
       if (!membersByUser.has(assignment.userId)) {
@@ -235,6 +245,18 @@ export class WorkspaceAggregate {
       }
       return { userId: assignment.userId, roleIds: uniqueRoleIds }
     })
+    const activeMembers = data.members.filter((member) => member.active)
+    for (const member of activeMembers) {
+      const assignment = normalizedAssignments.find(
+        (entry) => entry.userId === member.userId,
+      )
+      if (!assignment || assignment.roleIds.length === 0) {
+        throw domainError(
+          'INVALID_STATE',
+          'Todo miembro activo debe tener al menos un rol',
+        )
+      }
+    }
     const ownerAssignment = normalizedAssignments.find(
       (assignment) => assignment.userId === data.ownerUserId,
     )
@@ -265,8 +287,41 @@ export class WorkspaceAggregate {
 
   inviteMember(actorUserId: number, newUserId: number) {
     this.ensureMemberPermission(actorUserId, 'workspace.members.manage')
-    if (this._members.some((member) => member.userId === newUserId)) {
+    const existing = this._members.find((member) => member.userId === newUserId)
+    if (existing?.active) {
       throw domainError('DUPLICATE', 'El usuario ya pertenece al workspace')
+    }
+    if (existing && !existing.active) {
+      const nextState = transitionWorkspaceMember(
+        memberStateFromActiveFlag(existing.active),
+        'REACTIVATE',
+      )
+      const members = this._members.map((member) =>
+        member.userId === newUserId
+          ? { ...member, active: memberActiveFlagFromState(nextState) }
+          : member,
+      )
+      const currentAssignment = this._assignments.find(
+        (assignment) => assignment.userId === newUserId,
+      )
+      const assignments = currentAssignment
+        ? this._assignments
+        : [
+            ...this._assignments,
+            { userId: newUserId, roleIds: [SYSTEM_ROLE_IDS.COLLABORATOR] },
+          ]
+      return this.cloneWith({
+        members,
+        assignments,
+        domainEvents: [
+          ...this._domainEvents,
+          workspaceEvents.memberReactivated({
+            workspaceId: this._id,
+            actorUserId,
+            targetUserId: newUserId,
+          }),
+        ],
+      })
     }
     return this.cloneWith({
       members: [
@@ -293,8 +348,20 @@ export class WorkspaceAggregate {
     if (targetUserId === this._ownerUserId) {
       throw domainError('FORBIDDEN', 'No se puede remover al propietario del workspace')
     }
+    const member = this._members.find((current) => current.userId === targetUserId)
+    if (!member || !member.active) {
+      throw domainError('NOT_FOUND', 'El usuario no es miembro activo del workspace')
+    }
+    const nextState = transitionWorkspaceMember(
+      memberStateFromActiveFlag(member.active),
+      'REMOVE',
+    )
     return this.cloneWith({
-      members: this._members.filter((member) => member.userId !== targetUserId),
+      members: this._members.map((current) =>
+        current.userId === targetUserId
+          ? { ...current, active: memberActiveFlagFromState(nextState) }
+          : current,
+      ),
       assignments: this._assignments.filter(
         (assignment) => assignment.userId !== targetUserId,
       ),
@@ -439,7 +506,11 @@ export class WorkspaceAggregate {
     if (actorUserId !== this._ownerUserId) {
       throw domainError('FORBIDDEN', 'Solo el propietario puede transferir la propiedad')
     }
+    if (nextOwnerUserId === this._ownerUserId) {
+      throw domainError('INVALID_STATE', 'El nuevo propietario debe ser distinto al actual')
+    }
     this.ensureMemberExists(nextOwnerUserId)
+    transitionWorkspaceOwnership('OWNED', 'TRANSFER')
     const nextAssignments = this._assignments.map((assignment) => {
       if (assignment.userId === nextOwnerUserId) {
         const roleIds = assignment.roleIds.includes(SYSTEM_ROLE_IDS.OWNER)

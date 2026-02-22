@@ -26,12 +26,22 @@ export type AvailabilitySegmentReplacedEvent = DomainEvent<{
   segmentId: string
 }> & { type: 'availability.segment_replaced' }
 
+export type AvailabilityArchivedEvent = DomainEvent<{
+  disponibilidadId: string
+}> & { type: 'availability.archived' }
+
+export type AvailabilityReactivatedEvent = DomainEvent<{
+  disponibilidadId: string
+}> & { type: 'availability.reactivated' }
+
 export type AvailabilityDomainEvent =
   | AvailabilityCreatedEvent
   | AvailabilityDateRangeChangedEvent
   | AvailabilitySegmentAddedEvent
   | AvailabilitySegmentRemovedEvent
   | AvailabilitySegmentReplacedEvent
+  | AvailabilityArchivedEvent
+  | AvailabilityReactivatedEvent
 
 export const availabilityEvents = {
   created: (payload: AvailabilityCreatedEvent['payload']): AvailabilityCreatedEvent =>
@@ -64,4 +74,13 @@ export const availabilityEvents = {
       'availability.segment_replaced',
       payload,
     ) as AvailabilitySegmentReplacedEvent,
+  archived: (payload: AvailabilityArchivedEvent['payload']): AvailabilityArchivedEvent =>
+    createDomainEvent('availability.archived', payload) as AvailabilityArchivedEvent,
+  reactivated: (
+    payload: AvailabilityReactivatedEvent['payload'],
+  ): AvailabilityReactivatedEvent =>
+    createDomainEvent(
+      'availability.reactivated',
+      payload,
+    ) as AvailabilityReactivatedEvent,
 }

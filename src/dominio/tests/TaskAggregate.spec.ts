@@ -70,6 +70,11 @@ export const taskAggregateSpec = () => {
   const rootComment = withComment.comments[0]
   const withReply = withComment.addComment(1, 'Respuesta', rootComment.id)
   assert(withReply.comments.length === 2, 'Task must contain two comments')
+  const withDeletedRoot = withReply.deleteComment(1, rootComment.id)
+  assertThrows(
+    () => withDeletedRoot.addComment(1, 'No permitido', rootComment.id),
+    'INVALID_STATE',
+  )
 
   const rehydrated = TaskAggregate.rehydrate(closedAgain.toPrimitives())
   assert(
@@ -79,5 +84,28 @@ export const taskAggregateSpec = () => {
   assert(
     rehydrated.statusHistory.length === closedAgain.statusHistory.length,
     'Rehydrated task must keep status history',
+  )
+
+  const invalidCommentSnapshot = withDeletedRoot.toPrimitives()
+  const replyToDeleted = invalidCommentSnapshot.comments.find(
+    (comment) => comment.parentCommentId === rootComment.id,
+  )
+  if (replyToDeleted) {
+    invalidCommentSnapshot.comments = invalidCommentSnapshot.comments.filter(
+      (comment) => comment.id !== replyToDeleted.id,
+    )
+  }
+  invalidCommentSnapshot.comments.push({
+    id: 'invalid-reply',
+    authorUserId: 1,
+    body: 'Respuesta invalida',
+    parentCommentId: rootComment.id,
+    createdAt: Date.now(),
+    updatedAt: null,
+    deletedAt: null,
+  })
+  assertThrows(
+    () => TaskAggregate.rehydrate(invalidCommentSnapshot),
+    'INVALID_STATE',
   )
 }

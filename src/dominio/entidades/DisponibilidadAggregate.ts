@@ -3,6 +3,10 @@ import {
   type AvailabilityDomainEvent,
   availabilityEvents,
 } from '../eventos/AvailabilityEvents'
+import {
+  type AvailabilityState,
+  transitionAvailability,
+} from '../maquinas/availability/AvailabilityLifecycleStateMachine'
 import { DateRange } from '../valores_objeto/DateRange'
 import { DisponibilidadDescription } from '../valores_objeto/DisponibilidadDescription'
 import { DisponibilidadName } from '../valores_objeto/DisponibilidadName'
@@ -27,6 +31,7 @@ type SegmentoHorarioPrimitives = {
 type DisponibilidadPrimitives = {
   id: string
   projectId: string
+  state?: AvailabilityState
   name: string
   description: string
   startDate: string
@@ -205,6 +210,7 @@ class SegmentoHorario {
 export class DisponibilidadAggregate {
   private readonly _id: string
   private readonly _projectId: string
+  private readonly _state: AvailabilityState
   private readonly _name: DisponibilidadName
   private readonly _description: DisponibilidadDescription
   private readonly _dateRange: DateRange
@@ -215,6 +221,7 @@ export class DisponibilidadAggregate {
   private constructor(data: {
     id: string
     projectId: string
+    state: AvailabilityState
     name: DisponibilidadName
     description: DisponibilidadDescription
     dateRange: DateRange
@@ -224,6 +231,7 @@ export class DisponibilidadAggregate {
   }) {
     this._id = data.id
     this._projectId = data.projectId
+    this._state = data.state
     this._name = data.name
     this._description = data.description
     this._dateRange = data.dateRange
@@ -252,6 +260,7 @@ export class DisponibilidadAggregate {
     return new DisponibilidadAggregate({
       id,
       projectId: data.projectId,
+      state: 'ACTIVE',
       name: DisponibilidadName.create(data.name),
       description: DisponibilidadDescription.create(data.description ?? ''),
       dateRange: DateRange.create(data.startDate, data.endDate),
@@ -272,6 +281,7 @@ export class DisponibilidadAggregate {
     return new DisponibilidadAggregate({
       id: data.id,
       projectId: data.projectId,
+      state: data.state ?? 'ACTIVE',
       name: DisponibilidadName.create(data.name ?? 'Disponibilidad'),
       description: DisponibilidadDescription.create(data.description ?? ''),
       dateRange: DateRange.create(data.startDate, data.endDate),
@@ -284,6 +294,7 @@ export class DisponibilidadAggregate {
   }
 
   changeDateRange(startDate: string, endDate: string) {
+    transitionAvailability(this._state, 'CHANGE_DATE_RANGE')
     return this.cloneWith({
       dateRange: DateRange.create(startDate, endDate),
       domainEvents: [
@@ -306,6 +317,7 @@ export class DisponibilidadAggregate {
     daysOfWeek?: number[]
     daysOfMonth?: number[]
   }) {
+    transitionAvailability(this._state, 'ADD_SEGMENT')
     const segment = SegmentoHorario.create(data)
     return this.cloneWith({
       segments: [...this._segments, segment],
@@ -320,6 +332,7 @@ export class DisponibilidadAggregate {
   }
 
   removeSegment(segmentId: string) {
+    transitionAvailability(this._state, 'REMOVE_SEGMENT')
     if (!this._segments.some((segment) => segment.id === segmentId)) {
       throw domainError('NOT_FOUND', 'Segmento no encontrado')
     }
@@ -347,6 +360,7 @@ export class DisponibilidadAggregate {
       daysOfMonth?: number[]
     },
   ) {
+    transitionAvailability(this._state, 'REPLACE_SEGMENT')
     if (!this._segments.some((segment) => segment.id === segmentId)) {
       throw domainError('NOT_FOUND', 'Segmento no encontrado')
     }
@@ -428,6 +442,32 @@ export class DisponibilidadAggregate {
     return this.calcularMinutosValidos() / 60
   }
 
+  archive() {
+    const nextState = transitionAvailability(this._state, 'ARCHIVE')
+    return this.cloneWith({
+      state: nextState,
+      domainEvents: [
+        ...this._domainEvents,
+        availabilityEvents.archived({
+          disponibilidadId: this._id,
+        }),
+      ],
+    })
+  }
+
+  reactivate() {
+    const nextState = transitionAvailability(this._state, 'REACTIVATE')
+    return this.cloneWith({
+      state: nextState,
+      domainEvents: [
+        ...this._domainEvents,
+        availabilityEvents.reactivated({
+          disponibilidadId: this._id,
+        }),
+      ],
+    })
+  }
+
   pullDomainEvents() {
     return this._domainEvents.map((event) => ({ ...event }))
   }
@@ -436,6 +476,7 @@ export class DisponibilidadAggregate {
     return {
       id: this._id,
       projectId: this._projectId,
+      state: this._state,
       name: this._name.value,
       description: this._description.value,
       startDate: this._dateRange.start,
@@ -449,6 +490,7 @@ export class DisponibilidadAggregate {
   private cloneWith(
     patch: Partial<{
       dateRange: DateRange
+      state: AvailabilityState
       name: DisponibilidadName
       description: DisponibilidadDescription
       segments: readonly SegmentoHorario[]
@@ -458,6 +500,7 @@ export class DisponibilidadAggregate {
     return new DisponibilidadAggregate({
       id: this._id,
       projectId: this._projectId,
+      state: patch.state ?? this._state,
       name: patch.name ?? this._name,
       description: patch.description ?? this._description,
       dateRange: patch.dateRange ?? this._dateRange,
@@ -473,6 +516,10 @@ export class DisponibilidadAggregate {
 
   get projectId() {
     return this._projectId
+  }
+
+  get state() {
+    return this._state
   }
 
   get startDate() {

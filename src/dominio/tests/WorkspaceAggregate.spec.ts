@@ -36,7 +36,27 @@ export const workspaceAggregateSpec = () => {
 
   const withMember = workspace.inviteMember(1, 2)
   assert(withMember.members.some((member) => member.userId === 2), 'Member must exist')
+  const removed = withMember.removeMember(1, 2)
+  assert(
+    removed.members.some((member) => member.userId === 2 && !member.active),
+    'Removed member should remain registered as inactive',
+  )
+  const reactivated = removed.inviteMember(1, 2)
+  assert(
+    reactivated.members.some((member) => member.userId === 2 && member.active),
+    'Invite should reactivate previously removed member',
+  )
+  assert(
+    reactivated
+      .pullDomainEvents()
+      .some((event) => event.type === 'workspace.member_reactivated'),
+    'Reactivated flow must emit workspace.member_reactivated',
+  )
 
-  const transferred = withMember.transferOwnership(1, 2)
+  const transferred = reactivated.transferOwnership(1, 2)
   assert(transferred.ownerUserId === 2, 'Ownership must be transferred')
+  assertThrows(
+    () => transferred.transferOwnership(2, 2),
+    'INVALID_STATE',
+  )
 }

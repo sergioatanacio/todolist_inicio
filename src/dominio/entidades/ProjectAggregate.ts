@@ -3,6 +3,10 @@ import {
   type ProjectDomainEvent,
   projectEvents,
 } from '../eventos/ProjectEvents'
+import {
+  projectAccessStateFromHasAccess,
+  transitionProjectAccess,
+} from '../maquinas/project/ProjectAccessStateMachine'
 import type { Permission } from '../valores_objeto/Permission'
 import { ProjectDescription } from '../valores_objeto/ProjectDescription'
 import { ProjectName } from '../valores_objeto/ProjectName'
@@ -189,6 +193,10 @@ export class ProjectAggregate {
     }
     const existing = this._access.find((entry) => entry.userId === data.targetUserId)
     if (existing) {
+      transitionProjectAccess(
+        projectAccessStateFromHasAccess(true),
+        'CHANGE_ROLE',
+      )
       return this.changeProjectRole({
         actorUserId: data.actorUserId,
         targetUserId: data.targetUserId,
@@ -196,6 +204,7 @@ export class ProjectAggregate {
         actorHasWorkspaceOverride: data.actorHasWorkspaceOverride,
       })
     }
+    transitionProjectAccess(projectAccessStateFromHasAccess(false), 'GRANT_ACCESS')
     return ProjectAggregate.rehydrate({
       ...this.toPrimitives(),
       access: [
@@ -233,6 +242,7 @@ export class ProjectAggregate {
     if (!this._access.some((entry) => entry.userId === data.targetUserId)) {
       return this
     }
+    transitionProjectAccess(projectAccessStateFromHasAccess(true), 'REVOKE_ACCESS')
     const nextAccess = this._access.filter((entry) => entry.userId !== data.targetUserId)
     if (nextAccess.length === 0) {
       throw domainError('INVALID_STATE', 'El proyecto no puede quedarse sin miembros')
@@ -266,6 +276,7 @@ export class ProjectAggregate {
     if (!this._access.some((entry) => entry.userId === data.targetUserId)) {
       throw domainError('NOT_FOUND', 'El usuario objetivo no tiene acceso al proyecto')
     }
+    transitionProjectAccess(projectAccessStateFromHasAccess(true), 'CHANGE_ROLE')
     return ProjectAggregate.rehydrate({
       ...this.toPrimitives(),
       access: this._access.map((entry) =>

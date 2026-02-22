@@ -38,4 +38,28 @@ export const disponibilidadAggregateSpec = () => {
   assert(withSegment.calcularMinutosValidos() > 0, 'Expected valid minutes > 0')
 
   assertThrows(() => withSegment.removeSegment('missing'), 'NOT_FOUND')
+
+  const archived = withSegment.archive()
+  assert(archived.state === 'ARCHIVED', 'Expected availability state ARCHIVED')
+  assertThrows(
+    () =>
+      archived.addSegment({
+        name: 'No permitido',
+        startTime: '10:00',
+        endTime: '11:00',
+        daysOfWeek: [1],
+      }),
+    'INVALID_TRANSITION',
+  )
+  const reactivated = archived.reactivate()
+  assert(reactivated.state === 'ACTIVE', 'Expected availability state ACTIVE')
+
+  const lifecycleEvents = reactivated
+    .pullDomainEvents()
+    .filter(
+      (event) =>
+        event.type === 'availability.archived' ||
+        event.type === 'availability.reactivated',
+    )
+  assert(lifecycleEvents.length === 2, 'Expected lifecycle transition events')
 }

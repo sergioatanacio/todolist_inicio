@@ -28,4 +28,25 @@ export const workspaceConversationAggregateSpec = () => {
   assert(withReply.messages.length === 2, 'Expected two messages')
 
   assertThrows(() => withReply.editMessage(3, root.id, 'hack'), 'FORBIDDEN')
+
+  const deletedRoot = withReply.deleteMessage(1, root.id)
+  assertThrows(
+    () => deletedRoot.addMessage(2, 'No permitido', root.id),
+    'INVALID_STATE',
+  )
+
+  const invalidSnapshot = deletedRoot.toPrimitives()
+  invalidSnapshot.messages.push({
+    id: 'invalid-child',
+    authorUserId: 2,
+    body: 'Respuesta invalida',
+    parentMessageId: root.id,
+    createdAt: Date.now(),
+    editedAt: null,
+    deletedAt: null,
+  })
+  assertThrows(
+    () => WorkspaceConversationAggregate.rehydrate(invalidSnapshot),
+    'INVALID_STATE',
+  )
 }

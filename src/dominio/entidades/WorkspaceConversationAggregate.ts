@@ -3,6 +3,10 @@ import {
   type WorkspaceConversationDomainEvent,
   workspaceConversationEvents,
 } from '../eventos/WorkspaceConversationEvents'
+import {
+  transitionWorkspaceMessage,
+  workspaceMessageStateFromDeletedAt,
+} from '../maquinas/workspace/WorkspaceConversationMessageStateMachine'
 
 type WorkspaceMessagePrimitives = {
   id: string
@@ -81,6 +85,18 @@ export class WorkspaceConversationAggregate {
       if (message.parentMessageId && !ids.has(message.parentMessageId)) {
         throw domainError('NOT_FOUND', 'Mensaje responde a un padre inexistente')
       }
+      if (message.parentMessageId) {
+        const parent = data.messages.find((entry) => entry.id === message.parentMessageId)!
+        const parentState = workspaceMessageStateFromDeletedAt(parent.deletedAt)
+        try {
+          transitionWorkspaceMessage(parentState, 'REPLY')
+        } catch {
+          throw domainError(
+            'INVALID_STATE',
+            'Mensaje responde a un padre eliminado',
+          )
+        }
+      }
     }
     return new WorkspaceConversationAggregate({
       id: data.id,
@@ -98,7 +114,10 @@ export class WorkspaceConversationAggregate {
     if (parentMessageId) {
       const parent = this._messages.find((entry) => entry.id === parentMessageId)
       if (!parent) throw domainError('NOT_FOUND', 'No existe el mensaje padre')
-      if (parent.deletedAt !== null) {
+      const parentState = workspaceMessageStateFromDeletedAt(parent.deletedAt)
+      try {
+        transitionWorkspaceMessage(parentState, 'REPLY')
+      } catch {
         throw domainError('INVALID_STATE', 'No se puede responder a un mensaje eliminado')
       }
     }
@@ -137,7 +156,10 @@ export class WorkspaceConversationAggregate {
     if (message.authorUserId !== actorUserId) {
       throw domainError('FORBIDDEN', 'Solo el autor puede editar el mensaje')
     }
-    if (message.deletedAt !== null) {
+    const messageState = workspaceMessageStateFromDeletedAt(message.deletedAt)
+    try {
+      transitionWorkspaceMessage(messageState, 'EDIT')
+    } catch {
       throw domainError('INVALID_STATE', 'No se puede editar un mensaje eliminado')
     }
     return new WorkspaceConversationAggregate({
@@ -166,7 +188,12 @@ export class WorkspaceConversationAggregate {
     if (!force && message.authorUserId !== actorUserId) {
       throw domainError('FORBIDDEN', 'Solo el autor puede eliminar el mensaje')
     }
-    if (message.deletedAt !== null) return this
+    const messageState = workspaceMessageStateFromDeletedAt(message.deletedAt)
+    try {
+      transitionWorkspaceMessage(messageState, 'DELETE')
+    } catch {
+      return this
+    }
     return new WorkspaceConversationAggregate({
       id: this._id,
       workspaceId: this._workspaceId,

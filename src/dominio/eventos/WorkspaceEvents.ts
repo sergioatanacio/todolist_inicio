@@ -17,6 +17,12 @@ export type WorkspaceMemberRemovedEvent = DomainEvent<{
   targetUserId: number
 }> & { type: 'workspace.member_removed' }
 
+export type WorkspaceMemberReactivatedEvent = DomainEvent<{
+  workspaceId: string
+  actorUserId: number
+  targetUserId: number
+}> & { type: 'workspace.member_reactivated' }
+
 export type WorkspaceRoleCreatedEvent = DomainEvent<{
   workspaceId: string
   actorUserId: number
@@ -59,6 +65,7 @@ export type WorkspaceDomainEvent =
   | WorkspaceCreatedEvent
   | WorkspaceMemberAddedEvent
   | WorkspaceMemberRemovedEvent
+  | WorkspaceMemberReactivatedEvent
   | WorkspaceRoleCreatedEvent
   | WorkspaceRoleUpdatedEvent
   | WorkspaceRoleDeletedEvent
@@ -83,6 +90,13 @@ export const workspaceEvents = {
       'workspace.member_removed',
       payload,
     ) as WorkspaceMemberRemovedEvent,
+  memberReactivated: (
+    payload: WorkspaceMemberReactivatedEvent['payload'],
+  ): WorkspaceMemberReactivatedEvent =>
+    createDomainEvent(
+      'workspace.member_reactivated',
+      payload,
+    ) as WorkspaceMemberReactivatedEvent,
   roleCreated: (
     payload: WorkspaceRoleCreatedEvent['payload'],
   ): WorkspaceRoleCreatedEvent =>

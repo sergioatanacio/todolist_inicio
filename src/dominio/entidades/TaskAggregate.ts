@@ -6,6 +6,10 @@ import {
   eventForTargetState,
   transitionTask,
 } from '../maquinas/task/TaskStateMachine'
+import {
+  taskCommentStateFromDeletedAt,
+  transitionTaskComment,
+} from '../maquinas/task/TaskCommentStateMachine'
 import { TaskDuration } from '../valores_objeto/TaskDuration'
 import { type TaskStatus, isTaskStatus } from '../valores_objeto/TaskStatus'
 import { TodoText } from '../valores_objeto/TodoText'
@@ -188,6 +192,18 @@ export class TaskAggregate {
           'Comentario responde a un padre inexistente',
         )
       }
+      if (comment.parentCommentId) {
+        const parent = data.comments.find((entry) => entry.id === comment.parentCommentId)!
+        const parentState = taskCommentStateFromDeletedAt(parent.deletedAt)
+        try {
+          transitionTaskComment(parentState, 'REPLY')
+        } catch {
+          throw domainError(
+            'INVALID_STATE',
+            'Comentario responde a un padre eliminado',
+          )
+        }
+      }
       normalizeCommentBody(comment.body)
     }
     if (
@@ -326,7 +342,10 @@ export class TaskAggregate {
       if (!parent) {
         throw domainError('NOT_FOUND', 'No existe el comentario padre')
       }
-      if (parent.deletedAt !== null) {
+      const parentState = taskCommentStateFromDeletedAt(parent.deletedAt)
+      try {
+        transitionTaskComment(parentState, 'REPLY')
+      } catch {
         throw domainError(
           'INVALID_STATE',
           'No se puede responder a un comentario eliminado',
@@ -364,7 +383,10 @@ export class TaskAggregate {
     const body = normalizeCommentBody(rawBody)
     const current = this._comments.find((comment) => comment.id === commentId)
     if (!current) throw domainError('NOT_FOUND', 'Comentario no encontrado')
-    if (current.deletedAt !== null) {
+    const currentState = taskCommentStateFromDeletedAt(current.deletedAt)
+    try {
+      transitionTaskComment(currentState, 'EDIT')
+    } catch {
       throw domainError(
         'INVALID_STATE',
         'No se puede editar un comentario eliminado',
@@ -394,7 +416,12 @@ export class TaskAggregate {
     this.ensureActor(actorUserId)
     const current = this._comments.find((comment) => comment.id === commentId)
     if (!current) throw domainError('NOT_FOUND', 'Comentario no encontrado')
-    if (current.deletedAt !== null) return this
+    const currentState = taskCommentStateFromDeletedAt(current.deletedAt)
+    try {
+      transitionTaskComment(currentState, 'DELETE')
+    } catch {
+      return this
+    }
     if (!force && current.authorUserId !== actorUserId) {
       throw domainError('FORBIDDEN', 'Solo el autor puede eliminar el comentario')
     }
