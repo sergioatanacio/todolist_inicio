@@ -1,84 +1,27 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { type AppServices, createAppServices } from '../../aplicacion/AppBootstrap'
 import { initDatabase, persistDatabase } from '../../infra/SqliteDatabase'
+import { createAppDataLoaders } from './app/createAppDataLoaders'
+import { parseCsvDates, parseCsvNumbers } from './app/parsers'
+import { useRouteState } from './app/useRouteState'
+import { useSessionState } from './state/useSessionState'
+import type { UiForms, UiFormSetters } from './state/useUiForms'
+import { useUiForms } from './state/useUiForms'
+import { useUiDataState } from './state/useUiDataState'
+import { useUiErrors } from './state/useUiErrors'
 import {
-  type AppRoute,
   isPrivateRoute,
   navigate,
   parseRoute,
 } from '../router/AppRoute'
-import type {
-  AppControllerState,
-  TaskStatus,
-  UiErrors,
-} from '../types/AppUiModels'
+import type { AppControllerState, TaskStatus } from '../types/AppUiModels'
 
 const SESSION_KEY = 'todo_user_id'
 
-const parseCsvDates = (raw: string) =>
-  raw
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-
-const parseCsvNumbers = (raw: string) =>
-  raw
-    .split(',')
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0)
-    .map((s) => Number(s))
-    .filter((n) => Number.isInteger(n) && n > 0)
-
 export type AppController = {
   state: AppControllerState
-  forms: {
-    name: string
-    email: string
-    password: string
-    workspaceName: string
-    projectName: string
-    projectDescription: string
-    dispName: string
-    dispDescription: string
-    dispStart: string
-    dispEnd: string
-    segName: string
-    segDescription: string
-    segStart: string
-    segEnd: string
-    segDates: string
-    segDaysWeek: string
-    segDaysMonth: string
-    segExclusions: string
-    listName: string
-    selectedDispId: string
-    taskTitle: string
-    taskDuration: string
-  }
-  setForms: {
-    setName: (value: string) => void
-    setEmail: (value: string) => void
-    setPassword: (value: string) => void
-    setWorkspaceName: (value: string) => void
-    setProjectName: (value: string) => void
-    setProjectDescription: (value: string) => void
-    setDispName: (value: string) => void
-    setDispDescription: (value: string) => void
-    setDispStart: (value: string) => void
-    setDispEnd: (value: string) => void
-    setSegName: (value: string) => void
-    setSegDescription: (value: string) => void
-    setSegStart: (value: string) => void
-    setSegEnd: (value: string) => void
-    setSegDates: (value: string) => void
-    setSegDaysWeek: (value: string) => void
-    setSegDaysMonth: (value: string) => void
-    setSegExclusions: (value: string) => void
-    setListName: (value: string) => void
-    setSelectedDispId: (value: string) => void
-    setTaskTitle: (value: string) => void
-    setTaskDuration: (value: string) => void
-  }
+  forms: UiForms
+  setForms: UiFormSetters
   actions: {
     navigate: (path: string, replace?: boolean) => void
     submitAuth: () => Promise<void>
@@ -94,195 +37,30 @@ export type AppController = {
   }
 }
 
-const initialErrors: UiErrors = {
-  auth: null,
-  workspace: null,
-  project: null,
-  disponibilidad: null,
-  segment: null,
-  list: null,
-  task: null,
-}
-
 export const useAppController = (): AppController => {
   const servicesRef = useRef<AppServices | null>(null)
 
   const [ready, setReady] = useState(false)
-  const [route, setRoute] = useState<AppRoute>(() => parseRoute())
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login')
-
-  const [userId, setUserId] = useState<number | null>(null)
-  const [userName, setUserName] = useState('')
-  const [userEmail, setUserEmail] = useState('')
-
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [workspaceName, setWorkspaceName] = useState('')
-  const [projectName, setProjectName] = useState('')
-  const [projectDescription, setProjectDescription] = useState('')
-  const [dispName, setDispName] = useState('')
-  const [dispDescription, setDispDescription] = useState('')
-  const [dispStart, setDispStart] = useState('')
-  const [dispEnd, setDispEnd] = useState('')
-  const [segName, setSegName] = useState('')
-  const [segDescription, setSegDescription] = useState('')
-  const [segStart, setSegStart] = useState('')
-  const [segEnd, setSegEnd] = useState('')
-  const [segDates, setSegDates] = useState('')
-  const [segDaysWeek, setSegDaysWeek] = useState('')
-  const [segDaysMonth, setSegDaysMonth] = useState('')
-  const [segExclusions, setSegExclusions] = useState('')
-  const [listName, setListName] = useState('')
-  const [selectedDispId, setSelectedDispId] = useState('')
-  const [taskTitle, setTaskTitle] = useState('')
-  const [taskDuration, setTaskDuration] = useState('30')
-
   const [busy, setBusy] = useState(false)
-  const [errors, setErrors] = useState<UiErrors>(initialErrors)
 
-  const [workspaces, setWorkspaces] = useState<AppControllerState['workspaces']>([])
-  const [projects, setProjects] = useState<AppControllerState['projects']>([])
-  const [disponibilidades, setDisponibilidades] = useState<
-    AppControllerState['disponibilidades']
-  >([])
-  const [lists, setLists] = useState<AppControllerState['lists']>([])
-  const [kanban, setKanban] = useState<AppControllerState['kanban']>({
-    PENDING: [],
-    IN_PROGRESS: [],
-    DONE: [],
-    ABANDONED: [],
-  })
-  const [projectCalendar, setProjectCalendar] = useState<Record<string, number>>({})
-  const [availabilityPlan, setAvailabilityPlan] = useState<
-    AppControllerState['availabilityPlan']
-  >(null)
+  const { route, authMode, setAuthMode, context } = useRouteState()
+  const { forms, setForms } = useUiForms()
+  const { errors, setError } = useUiErrors()
+  const { userId, userName, userEmail, setSession, clearSession } = useSessionState()
+  const { data, setters, clearers } = useUiDataState()
 
-  const workspaceId =
-    route.kind === 'workspace' ||
-    route.kind === 'project' ||
-    route.kind === 'availability' ||
-    route.kind === 'availabilityCalendar' ||
-    route.kind === 'kanban'
-      ? route.workspaceId
-      : null
-
-  const projectId =
-    route.kind === 'project' ||
-    route.kind === 'availability' ||
-    route.kind === 'availabilityCalendar' ||
-    route.kind === 'kanban'
-      ? route.projectId
-      : null
-
-  const disponibilidadId =
-    route.kind === 'availability' || route.kind === 'availabilityCalendar'
-      ? route.disponibilidadId
-      : null
-
-  const listId = route.kind === 'kanban' ? route.listId : null
-
-  const setError = (key: keyof UiErrors, message: string | null) => {
-    setErrors((current) => ({ ...current, [key]: message }))
-  }
-
-  const loadWorkspaces = (services: AppServices, actorUserId: number) => {
-    const rows = services.workspace
-      .listByOwnerUserId(actorUserId)
-      .map((w) => ({ id: w.id, name: w.name }))
-    setWorkspaces(rows)
-    return rows
-  }
-
-  const loadWorkspaceContext = (
-    services: AppServices,
-    wsId: string,
-    actorUserId: number,
-  ) => {
-    const rows = services.project
-      .listByWorkspace(wsId, actorUserId)
-      .map((p) => ({
-        id: p.id,
-        workspaceId: p.workspaceId,
-        name: p.name,
-        description: p.description,
-      }))
-    setProjects(rows)
-  }
-
-  const loadProjectContext = (services: AppServices, prjId: string) => {
-    const ds = services.disponibilidad.listByProject(prjId).map((d) => ({
-      id: d.id,
-      projectId: d.projectId,
-      name: d.name,
-      startDate: d.startDate,
-      endDate: d.endDate,
-      segments: d.segments.map((s) => ({
-        id: s.id,
-        name: s.name,
-        description: s.description,
-        startTime: s.startTime,
-        endTime: s.endTime,
-        specificDates: s.specificDates,
-        exclusionDates: s.exclusionDates,
-        daysOfWeek: s.daysOfWeek,
-        daysOfMonth: s.daysOfMonth,
-      })),
-    }))
-    setDisponibilidades(ds)
-    setSelectedDispId((current) => current || ds[0]?.id || '')
-
-    const ls = services.todoList.listByProject(prjId).map((l) => ({
-      id: l.id,
-      projectId: l.projectId,
-      disponibilidadId: l.disponibilidadId,
-      name: l.name,
-    }))
-    setLists(ls)
-  }
-
-  const loadKanban = (services: AppServices, todoListId: string) => {
-    const data = services.taskPlanning.getKanbanByTodoList(todoListId)
-    setKanban({
-      PENDING: data.PENDING.map((t) => ({
-        id: t.id,
-        title: t.title,
-        status: t.status,
-        durationMinutes: t.durationMinutes,
-      })),
-      IN_PROGRESS: data.IN_PROGRESS.map((t) => ({
-        id: t.id,
-        title: t.title,
-        status: t.status,
-        durationMinutes: t.durationMinutes,
-      })),
-      DONE: data.DONE.map((t) => ({
-        id: t.id,
-        title: t.title,
-        status: t.status,
-        durationMinutes: t.durationMinutes,
-      })),
-      ABANDONED: data.ABANDONED.map((t) => ({
-        id: t.id,
-        title: t.title,
-        status: t.status,
-        durationMinutes: t.durationMinutes,
-      })),
-    })
-  }
-
-  useEffect(() => {
-    const onPop = () => {
-      const next = parseRoute()
-      setRoute(next)
-      if (next.kind === 'auth') setAuthMode(next.mode)
-    }
-    window.addEventListener('popstate', onPop)
-    return () => window.removeEventListener('popstate', onPop)
-  }, [])
+  const loaders = useMemo(
+    () =>
+      createAppDataLoaders({
+        ...setters,
+        setSelectedDispId: setForms.setSelectedDispId,
+      }),
+    [setForms.setSelectedDispId, setters],
+  )
 
   useEffect(() => {
     let mounted = true
+
     const boot = async () => {
       const db = await initDatabase()
       if (!mounted) return
@@ -294,20 +72,23 @@ export const useAppController = (): AppController => {
       if (stored) {
         const session = services.auth.restoreSession(Number(stored))
         if (session) {
-          setUserId(session.id)
-          setUserName(session.name)
-          setUserEmail(session.email)
-          const ws = loadWorkspaces(services, session.id)
-          const current = parseRoute()
-          if (current.kind === 'landing' || current.kind === 'auth') {
-            navigate(ws[0] ? `/app/workspaces/${ws[0].id}` : '/app/workspaces', true)
+          setSession({ id: session.id, name: session.name, email: session.email })
+          const workspaces = loaders.loadWorkspaces(services, session.id)
+          const currentRoute = parseRoute()
+          if (currentRoute.kind === 'landing' || currentRoute.kind === 'auth') {
+            navigate(
+              workspaces[0] ? `/app/workspaces/${workspaces[0].id}` : '/app/workspaces',
+              true,
+            )
           }
         } else {
           localStorage.removeItem(SESSION_KEY)
         }
       }
+
       setReady(true)
     }
+
     void boot()
     return () => {
       mounted = false
@@ -323,36 +104,40 @@ export const useAppController = (): AppController => {
     const services = servicesRef.current
     if (!services || userId === null) return
 
-    loadWorkspaces(services, userId)
+    loaders.loadWorkspaces(services, userId)
 
-    if (workspaceId) loadWorkspaceContext(services, workspaceId, userId)
-    else setProjects([])
-
-    if (projectId) loadProjectContext(services, projectId)
-    else {
-      setDisponibilidades([])
-      setLists([])
+    if (context.workspaceId) {
+      loaders.loadWorkspaceContext(services, context.workspaceId, userId)
+    } else {
+      clearers.clearProjects()
     }
 
-    if (listId) loadKanban(services, listId)
-    else {
-      setKanban({ PENDING: [], IN_PROGRESS: [], DONE: [], ABANDONED: [] })
+    if (context.projectId) {
+      loaders.loadProjectContext(services, context.projectId)
+    } else {
+      clearers.clearProjectContext()
+    }
+
+    if (context.listId) {
+      loaders.loadKanban(services, context.listId)
+    } else {
+      clearers.clearKanban()
     }
 
     if (route.kind === 'project' && route.tab === 'calendar') {
-      setProjectCalendar(services.taskPlanning.buildProjectCalendar(route.projectId))
+      setters.setProjectCalendar(services.taskPlanning.buildProjectCalendar(route.projectId))
     } else {
-      setProjectCalendar({})
+      clearers.clearProjectCalendar()
     }
 
     if (route.kind === 'availabilityCalendar') {
-      setAvailabilityPlan(
+      setters.setAvailabilityPlan(
         services.taskPlanning.buildDisponibilidadCalendar(route.disponibilidadId),
       )
     } else {
-      setAvailabilityPlan(null)
+      clearers.clearAvailabilityPlan()
     }
-  }, [workspaceId, projectId, listId, route, userId])
+  }, [clearers, context, loaders, route, setters, userId])
 
   const submitAuth = async () => {
     const services = servicesRef.current
@@ -361,7 +146,11 @@ export const useAppController = (): AppController => {
     setBusy(true)
     setError('auth', null)
 
-    if (!email.trim() || !password.trim() || (authMode === 'register' && !name.trim())) {
+    if (
+      !forms.email.trim() ||
+      !forms.password.trim() ||
+      (authMode === 'register' && !forms.name.trim())
+    ) {
       setError('auth', 'Completa los campos requeridos.')
       setBusy(false)
       return
@@ -370,13 +159,13 @@ export const useAppController = (): AppController => {
     const result =
       authMode === 'register'
         ? await services.auth.register({
-            name: name.trim(),
-            email: email.trim().toLowerCase(),
-            password: password.trim(),
+            name: forms.name.trim(),
+            email: forms.email.trim().toLowerCase(),
+            password: forms.password.trim(),
           })
         : await services.auth.login({
-            email: email.trim().toLowerCase(),
-            password: password.trim(),
+            email: forms.email.trim().toLowerCase(),
+            password: forms.password.trim(),
           })
 
     if (!result.ok) {
@@ -385,20 +174,20 @@ export const useAppController = (): AppController => {
       return
     }
 
-    setUserId(result.user.id)
-    setUserName(result.user.name)
-    setUserEmail(result.user.email)
+    setSession({
+      id: result.user.id,
+      name: result.user.name,
+      email: result.user.email,
+    })
     localStorage.setItem(SESSION_KEY, String(result.user.id))
 
-    const ws = loadWorkspaces(services, result.user.id)
-    navigate(ws[0] ? `/app/workspaces/${ws[0].id}` : '/app/workspaces')
+    const workspaces = loaders.loadWorkspaces(services, result.user.id)
+    navigate(workspaces[0] ? `/app/workspaces/${workspaces[0].id}` : '/app/workspaces')
     setBusy(false)
   }
 
   const logout = () => {
-    setUserId(null)
-    setUserName('')
-    setUserEmail('')
+    clearSession()
     localStorage.removeItem(SESSION_KEY)
     navigate('/', true)
   }
@@ -411,10 +200,10 @@ export const useAppController = (): AppController => {
     try {
       const created = await services.workspace.createWorkspace({
         ownerUserId: userId,
-        name: workspaceName,
+        name: forms.workspaceName,
       })
-      setWorkspaceName('')
-      loadWorkspaces(services, userId)
+      setForms.setWorkspaceName('')
+      loaders.loadWorkspaces(services, userId)
       navigate(`/app/workspaces/${created.id}`)
     } catch (error) {
       setError(
@@ -428,25 +217,22 @@ export const useAppController = (): AppController => {
 
   const createProject = async () => {
     const services = servicesRef.current
-    if (!services || userId === null || !workspaceId) return
+    if (!services || userId === null || !context.workspaceId) return
     setBusy(true)
     setError('project', null)
     try {
       const project = await services.project.createProject({
-        workspaceId,
+        workspaceId: context.workspaceId,
         actorUserId: userId,
-        name: projectName,
-        description: projectDescription,
+        name: forms.projectName,
+        description: forms.projectDescription,
       })
-      setProjectName('')
-      setProjectDescription('')
-      loadWorkspaceContext(services, workspaceId, userId)
-      navigate(`/app/workspaces/${workspaceId}/projects/${project.id}/overview`)
+      setForms.setProjectName('')
+      setForms.setProjectDescription('')
+      loaders.loadWorkspaceContext(services, context.workspaceId, userId)
+      navigate(`/app/workspaces/${context.workspaceId}/projects/${project.id}/overview`)
     } catch (error) {
-      setError(
-        'project',
-        error instanceof Error ? error.message : 'No se pudo crear proyecto.',
-      )
+      setError('project', error instanceof Error ? error.message : 'No se pudo crear proyecto.')
     } finally {
       setBusy(false)
     }
@@ -454,29 +240,27 @@ export const useAppController = (): AppController => {
 
   const createDisponibilidad = async () => {
     const services = servicesRef.current
-    if (!services || userId === null || !projectId) return
+    if (!services || userId === null || !context.projectId) return
     setBusy(true)
     setError('disponibilidad', null)
     try {
       await services.disponibilidad.create({
-        projectId,
+        projectId: context.projectId,
         actorUserId: userId,
-        name: dispName,
-        description: dispDescription,
-        startDate: dispStart,
-        endDate: dispEnd,
+        name: forms.dispName,
+        description: forms.dispDescription,
+        startDate: forms.dispStart,
+        endDate: forms.dispEnd,
       })
-      setDispName('')
-      setDispDescription('')
-      setDispStart('')
-      setDispEnd('')
-      loadProjectContext(services, projectId)
+      setForms.setDispName('')
+      setForms.setDispDescription('')
+      setForms.setDispStart('')
+      setForms.setDispEnd('')
+      loaders.loadProjectContext(services, context.projectId)
     } catch (error) {
       setError(
         'disponibilidad',
-        error instanceof Error
-          ? error.message
-          : 'No se pudo crear disponibilidad.',
+        error instanceof Error ? error.message : 'No se pudo crear disponibilidad.',
       )
     } finally {
       setBusy(false)
@@ -485,38 +269,35 @@ export const useAppController = (): AppController => {
 
   const addSegment = async () => {
     const services = servicesRef.current
-    const targetDisponibilidadId = disponibilidadId ?? selectedDispId
-    if (!services || userId === null || !projectId || !targetDisponibilidadId) return
+    const targetDisponibilidadId = context.disponibilidadId ?? forms.selectedDispId
+    if (!services || userId === null || !context.projectId || !targetDisponibilidadId) return
     setBusy(true)
     setError('segment', null)
     try {
       await services.disponibilidad.addSegment({
-        projectId,
+        projectId: context.projectId,
         disponibilidadId: targetDisponibilidadId,
         actorUserId: userId,
-        name: segName,
-        description: segDescription,
-        startTime: segStart,
-        endTime: segEnd,
-        specificDates: parseCsvDates(segDates),
-        exclusionDates: parseCsvDates(segExclusions),
-        daysOfWeek: parseCsvNumbers(segDaysWeek),
-        daysOfMonth: parseCsvNumbers(segDaysMonth),
+        name: forms.segName,
+        description: forms.segDescription,
+        startTime: forms.segStart,
+        endTime: forms.segEnd,
+        specificDates: parseCsvDates(forms.segDates),
+        exclusionDates: parseCsvDates(forms.segExclusions),
+        daysOfWeek: parseCsvNumbers(forms.segDaysWeek),
+        daysOfMonth: parseCsvNumbers(forms.segDaysMonth),
       })
-      setSegName('')
-      setSegDescription('')
-      setSegStart('')
-      setSegEnd('')
-      setSegDates('')
-      setSegDaysWeek('')
-      setSegDaysMonth('')
-      setSegExclusions('')
-      loadProjectContext(services, projectId)
+      setForms.setSegName('')
+      setForms.setSegDescription('')
+      setForms.setSegStart('')
+      setForms.setSegEnd('')
+      setForms.setSegDates('')
+      setForms.setSegDaysWeek('')
+      setForms.setSegDaysMonth('')
+      setForms.setSegExclusions('')
+      loaders.loadProjectContext(services, context.projectId)
     } catch (error) {
-      setError(
-        'segment',
-        error instanceof Error ? error.message : 'No se pudo agregar segmento.',
-      )
+      setError('segment', error instanceof Error ? error.message : 'No se pudo agregar segmento.')
     } finally {
       setBusy(false)
     }
@@ -524,22 +305,28 @@ export const useAppController = (): AppController => {
 
   const createList = async () => {
     const services = servicesRef.current
-    if (!services || userId === null || !workspaceId || !projectId || !selectedDispId) {
+    if (
+      !services ||
+      userId === null ||
+      !context.workspaceId ||
+      !context.projectId ||
+      !forms.selectedDispId
+    ) {
       return
     }
     setBusy(true)
     setError('list', null)
     try {
       await services.todoList.create({
-        workspaceId,
-        projectId,
-        disponibilidadId: selectedDispId,
+        workspaceId: context.workspaceId,
+        projectId: context.projectId,
+        disponibilidadId: forms.selectedDispId,
         actorUserId: userId,
-        name: listName,
+        name: forms.listName,
         description: '',
       })
-      setListName('')
-      loadProjectContext(services, projectId)
+      setForms.setListName('')
+      loaders.loadProjectContext(services, context.projectId)
     } catch (error) {
       setError('list', error instanceof Error ? error.message : 'No se pudo crear lista.')
     } finally {
@@ -549,21 +336,23 @@ export const useAppController = (): AppController => {
 
   const createTask = async () => {
     const services = servicesRef.current
-    if (!services || userId === null || !workspaceId || !projectId || !listId) return
+    if (!services || userId === null || !context.workspaceId || !context.projectId || !context.listId) {
+      return
+    }
     setBusy(true)
     setError('task', null)
     try {
       await services.taskPlanning.createTask({
-        workspaceId,
-        projectId,
-        todoListId: listId,
+        workspaceId: context.workspaceId,
+        projectId: context.projectId,
+        todoListId: context.listId,
         actorUserId: userId,
-        title: taskTitle,
-        durationMinutes: Number(taskDuration),
+        title: forms.taskTitle,
+        durationMinutes: Number(forms.taskDuration),
       })
-      setTaskTitle('')
-      setTaskDuration('30')
-      loadKanban(services, listId)
+      setForms.setTaskTitle('')
+      setForms.setTaskDuration('30')
+      loaders.loadKanban(services, context.listId)
     } catch (error) {
       setError('task', error instanceof Error ? error.message : 'No se pudo crear tarea.')
     } finally {
@@ -573,23 +362,22 @@ export const useAppController = (): AppController => {
 
   const changeStatus = async (taskId: string, toStatus: TaskStatus) => {
     const services = servicesRef.current
-    if (!services || userId === null || !workspaceId || !projectId || !listId) return
+    if (!services || userId === null || !context.workspaceId || !context.projectId || !context.listId) {
+      return
+    }
     setBusy(true)
     setError('task', null)
     try {
       await services.taskPlanning.changeTaskStatus({
-        workspaceId,
-        projectId,
+        workspaceId: context.workspaceId,
+        projectId: context.projectId,
         actorUserId: userId,
         taskId,
         toStatus,
       })
-      loadKanban(services, listId)
+      loaders.loadKanban(services, context.listId)
     } catch (error) {
-      setError(
-        'task',
-        error instanceof Error ? error.message : 'No se pudo cambiar estado.',
-      )
+      setError('task', error instanceof Error ? error.message : 'No se pudo cambiar estado.')
     } finally {
       setBusy(false)
     }
@@ -604,71 +392,20 @@ export const useAppController = (): AppController => {
     userEmail,
     busy,
     errors,
-    workspaces,
-    projects,
-    disponibilidades,
-    lists,
-    kanban,
-    projectCalendar,
-    availabilityPlan,
-    context: {
-      workspaceId,
-      projectId,
-      disponibilidadId,
-      listId,
-    },
+    workspaces: data.workspaces,
+    projects: data.projects,
+    disponibilidades: data.disponibilidades,
+    lists: data.lists,
+    kanban: data.kanban,
+    projectCalendar: data.projectCalendar,
+    availabilityPlan: data.availabilityPlan,
+    context,
   }
 
   return {
     state,
-    forms: {
-      name,
-      email,
-      password,
-      workspaceName,
-      projectName,
-      projectDescription,
-      dispName,
-      dispDescription,
-      dispStart,
-      dispEnd,
-      segName,
-      segDescription,
-      segStart,
-      segEnd,
-      segDates,
-      segDaysWeek,
-      segDaysMonth,
-      segExclusions,
-      listName,
-      selectedDispId,
-      taskTitle,
-      taskDuration,
-    },
-    setForms: {
-      setName,
-      setEmail,
-      setPassword,
-      setWorkspaceName,
-      setProjectName,
-      setProjectDescription,
-      setDispName,
-      setDispDescription,
-      setDispStart,
-      setDispEnd,
-      setSegName,
-      setSegDescription,
-      setSegStart,
-      setSegEnd,
-      setSegDates,
-      setSegDaysWeek,
-      setSegDaysMonth,
-      setSegExclusions,
-      setListName,
-      setSelectedDispId,
-      setTaskTitle,
-      setTaskDuration,
-    },
+    forms,
+    setForms,
     actions: {
       navigate,
       submitAuth,

@@ -213,11 +213,26 @@ function App() {
       ) : null}
 
       {state.route.kind === 'project' && state.route.tab === 'calendar' ? (
-        <ProjectCalendarScreen calendar={state.projectCalendar} />
+        <ProjectCalendarScreen
+          calendar={state.projectCalendar}
+          lists={state.lists}
+          onOpenKanban={(listId) =>
+            actions.navigate(
+              `/app/workspaces/${currentWorkspaceId}/projects/${currentProjectId}/lists/${listId}/kanban`,
+            )
+          }
+        />
       ) : null}
 
       {state.route.kind === 'availabilityCalendar' ? (
-        <AvailabilityCalendarScreen plan={state.availabilityPlan} />
+        <AvailabilityCalendarScreen
+          plan={state.availabilityPlan}
+          onOpenKanban={(listId) =>
+            actions.navigate(
+              `/app/workspaces/${currentWorkspaceId}/projects/${currentProjectId}/lists/${listId}/kanban`,
+            )
+          }
+        />
       ) : null}
     </AppShell>
   )
