@@ -8,6 +8,12 @@ export class InMemoryWorkspaceRepository implements WorkspaceRepository {
     return this.items.get(id) ?? null
   }
 
+  findByOwnerUserId(ownerUserId: number) {
+    return [...this.items.values()].filter(
+      (workspace) => workspace.ownerUserId === ownerUserId,
+    )
+  }
+
   save(workspace: WorkspaceAggregate) {
     this.items.set(workspace.id, workspace)
   }

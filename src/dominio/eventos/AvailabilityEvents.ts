@@ -2,7 +2,7 @@ import { type DomainEvent, createDomainEvent } from './DomainEvent'
 
 export type AvailabilityCreatedEvent = DomainEvent<{
   disponibilidadId: string
-  workspaceId: string
+  projectId: string
 }> & { type: 'availability.created' }
 
 export type AvailabilityDateRangeChangedEvent = DomainEvent<{

@@ -12,6 +12,7 @@ import type { AssignWorkspaceRoleCommand } from './commands/workspace/AssignWork
 import type { TransferWorkspaceOwnershipCommand } from './commands/workspace/TransferWorkspaceOwnershipCommand'
 
 export class WorkspaceAppService {
+  private readonly workspaceRepository: WorkspaceRepository
   private readonly createWorkspaceUseCase: CreateWorkspaceUseCase
   private readonly inviteWorkspaceMemberUseCase: InviteWorkspaceMemberUseCase
   private readonly assignWorkspaceRoleUseCase: AssignWorkspaceRoleUseCase
@@ -22,6 +23,7 @@ export class WorkspaceAppService {
     unitOfWork: UnitOfWork,
     eventBus: DomainEventBus,
   ) {
+    this.workspaceRepository = workspaceRepository
     const eventPublisher = new DomainEventPublisher(eventBus)
     this.createWorkspaceUseCase = new CreateWorkspaceUseCase(
       workspaceRepository,
@@ -60,5 +62,9 @@ export class WorkspaceAppService {
 
   transferOwnership(command: TransferWorkspaceOwnershipCommand) {
     return this.transferWorkspaceOwnershipUseCase.execute(command)
+  }
+
+  listByOwnerUserId(ownerUserId: number) {
+    return this.workspaceRepository.findByOwnerUserId(ownerUserId)
   }
 }

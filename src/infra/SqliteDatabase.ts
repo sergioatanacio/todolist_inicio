@@ -63,7 +63,38 @@ export const initDatabase = async () => {
       created_at INTEGER NOT NULL,
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
+    CREATE TABLE IF NOT EXISTS workspaces (
+      id TEXT PRIMARY KEY,
+      owner_user_id INTEGER NOT NULL,
+      payload_json TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS projects (
+      id TEXT PRIMARY KEY,
+      workspace_id TEXT NOT NULL,
+      payload_json TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS disponibilidades (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      payload_json TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS todo_lists (
+      id TEXT PRIMARY KEY,
+      project_id TEXT NOT NULL,
+      disponibilidad_id TEXT NOT NULL,
+      payload_json TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
   `)
+  // Compatibilidad con bases previas donde disponibilidades tenia workspace_id.
+  try {
+    db.exec('ALTER TABLE disponibilidades ADD COLUMN project_id TEXT')
+  } catch {
+    // Ignorar si ya existe.
+  }
   await idbSet(DB_FILE, db.export().buffer)
   return db
 }

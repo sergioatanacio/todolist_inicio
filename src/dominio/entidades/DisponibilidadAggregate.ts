@@ -4,13 +4,19 @@ import {
   availabilityEvents,
 } from '../eventos/AvailabilityEvents'
 import { DateRange } from '../valores_objeto/DateRange'
+import { DisponibilidadDescription } from '../valores_objeto/DisponibilidadDescription'
+import { DisponibilidadName } from '../valores_objeto/DisponibilidadName'
 import { DayOfMonthSet } from '../valores_objeto/DayOfMonthSet'
 import { DayOfWeekSet } from '../valores_objeto/DayOfWeekSet'
+import { SegmentoTiempoDescription } from '../valores_objeto/SegmentoTiempoDescription'
+import { SegmentoTiempoName } from '../valores_objeto/SegmentoTiempoName'
 import { SpecificDateSet } from '../valores_objeto/SpecificDateSet'
 import { TimeRange } from '../valores_objeto/TimeRange'
 
 type SegmentoHorarioPrimitives = {
   id: string
+  name: string
+  description: string
   startTime: string
   endTime: string
   specificDates: string[]
@@ -20,10 +26,12 @@ type SegmentoHorarioPrimitives = {
 
 type DisponibilidadPrimitives = {
   id: string
-  workspaceId: string
+  projectId: string
+  name: string
+  description: string
   startDate: string
   endDate: string
-  segments: SegmentoHorarioPrimitives[]
+  segments?: SegmentoHorarioPrimitives[]
   domainEvents?: AvailabilityDomainEvent[]
   createdAt: number
 }
@@ -56,6 +64,8 @@ const dayOfWeekToDomain = (date: Date) => {
 
 class SegmentoHorario {
   private readonly _id: string
+  private readonly _name: SegmentoTiempoName
+  private readonly _description: SegmentoTiempoDescription
   private readonly _timeRange: TimeRange
   private readonly _specificDates: SpecificDateSet
   private readonly _daysOfWeek: DayOfWeekSet
@@ -63,12 +73,16 @@ class SegmentoHorario {
 
   private constructor(data: {
     id: string
+    name: SegmentoTiempoName
+    description: SegmentoTiempoDescription
     timeRange: TimeRange
     specificDates: SpecificDateSet
     daysOfWeek: DayOfWeekSet
     daysOfMonth: DayOfMonthSet
   }) {
     this._id = data.id
+    this._name = data.name
+    this._description = data.description
     this._timeRange = data.timeRange
     this._specificDates = data.specificDates
     this._daysOfWeek = data.daysOfWeek
@@ -76,6 +90,8 @@ class SegmentoHorario {
   }
 
   static create(data: {
+    name: string
+    description?: string
     startTime: string
     endTime: string
     specificDates?: string[]
@@ -84,6 +100,8 @@ class SegmentoHorario {
   }) {
     return SegmentoHorario.rehydrate({
       id: crypto.randomUUID(),
+      name: data.name,
+      description: data.description ?? '',
       startTime: data.startTime,
       endTime: data.endTime,
       specificDates: data.specificDates ?? [],
@@ -108,6 +126,8 @@ class SegmentoHorario {
     }
     return new SegmentoHorario({
       id: data.id,
+      name: SegmentoTiempoName.create(data.name ?? 'Segmento'),
+      description: SegmentoTiempoDescription.create(data.description ?? ''),
       timeRange: TimeRange.create(data.startTime, data.endTime),
       specificDates,
       daysOfWeek,
@@ -159,6 +179,8 @@ class SegmentoHorario {
   toPrimitives(): SegmentoHorarioPrimitives {
     return {
       id: this._id,
+      name: this._name.value,
+      description: this._description.value,
       startTime: this._timeRange.start,
       endTime: this._timeRange.end,
       specificDates: this._specificDates.toArray(),
@@ -170,11 +192,21 @@ class SegmentoHorario {
   get id() {
     return this._id
   }
+
+  get name() {
+    return this._name.value
+  }
+
+  get description() {
+    return this._description.value
+  }
 }
 
 export class DisponibilidadAggregate {
   private readonly _id: string
-  private readonly _workspaceId: string
+  private readonly _projectId: string
+  private readonly _name: DisponibilidadName
+  private readonly _description: DisponibilidadDescription
   private readonly _dateRange: DateRange
   private readonly _segments: readonly SegmentoHorario[]
   private readonly _domainEvents: readonly AvailabilityDomainEvent[]
@@ -182,14 +214,18 @@ export class DisponibilidadAggregate {
 
   private constructor(data: {
     id: string
-    workspaceId: string
+    projectId: string
+    name: DisponibilidadName
+    description: DisponibilidadDescription
     dateRange: DateRange
     segments: readonly SegmentoHorario[]
     domainEvents: readonly AvailabilityDomainEvent[]
     createdAt: number
   }) {
     this._id = data.id
-    this._workspaceId = data.workspaceId
+    this._projectId = data.projectId
+    this._name = data.name
+    this._description = data.description
     this._dateRange = data.dateRange
     this._segments = data.segments
     this._domainEvents = data.domainEvents
@@ -197,10 +233,14 @@ export class DisponibilidadAggregate {
   }
 
   static create(data: {
-    workspaceId: string
+    projectId: string
+    name: string
+    description?: string
     startDate: string
     endDate: string
     segments?: Array<{
+      name: string
+      description?: string
       startTime: string
       endTime: string
       specificDates?: string[]
@@ -211,7 +251,9 @@ export class DisponibilidadAggregate {
     const id = crypto.randomUUID()
     return new DisponibilidadAggregate({
       id,
-      workspaceId: data.workspaceId,
+      projectId: data.projectId,
+      name: DisponibilidadName.create(data.name),
+      description: DisponibilidadDescription.create(data.description ?? ''),
       dateRange: DateRange.create(data.startDate, data.endDate),
       segments: (data.segments ?? []).map((segment) =>
         SegmentoHorario.create(segment),
@@ -219,7 +261,7 @@ export class DisponibilidadAggregate {
       domainEvents: [
         availabilityEvents.created({
           disponibilidadId: id,
-          workspaceId: data.workspaceId,
+          projectId: data.projectId,
         }),
       ],
       createdAt: Date.now(),
@@ -229,9 +271,13 @@ export class DisponibilidadAggregate {
   static rehydrate(data: DisponibilidadPrimitives) {
     return new DisponibilidadAggregate({
       id: data.id,
-      workspaceId: data.workspaceId,
+      projectId: data.projectId,
+      name: DisponibilidadName.create(data.name ?? 'Disponibilidad'),
+      description: DisponibilidadDescription.create(data.description ?? ''),
       dateRange: DateRange.create(data.startDate, data.endDate),
-      segments: data.segments.map((segment) => SegmentoHorario.rehydrate(segment)),
+      segments: (data.segments ?? []).map((segment) =>
+        SegmentoHorario.rehydrate(segment),
+      ),
       domainEvents: data.domainEvents ?? [],
       createdAt: data.createdAt,
     })
@@ -252,6 +298,8 @@ export class DisponibilidadAggregate {
   }
 
   addSegment(data: {
+    name: string
+    description?: string
     startTime: string
     endTime: string
     specificDates?: string[]
@@ -290,6 +338,8 @@ export class DisponibilidadAggregate {
   replaceSegment(
     segmentId: string,
     data: {
+      name: string
+      description?: string
       startTime: string
       endTime: string
       specificDates?: string[]
@@ -304,6 +354,8 @@ export class DisponibilidadAggregate {
       segment.id === segmentId
         ? SegmentoHorario.rehydrate({
             id: segmentId,
+            name: data.name,
+            description: data.description ?? '',
             startTime: data.startTime,
             endTime: data.endTime,
             specificDates: data.specificDates ?? [],
@@ -383,7 +435,9 @@ export class DisponibilidadAggregate {
   toPrimitives(): DisponibilidadPrimitives {
     return {
       id: this._id,
-      workspaceId: this._workspaceId,
+      projectId: this._projectId,
+      name: this._name.value,
+      description: this._description.value,
       startDate: this._dateRange.start,
       endDate: this._dateRange.end,
       segments: this._segments.map((segment) => segment.toPrimitives()),
@@ -395,13 +449,17 @@ export class DisponibilidadAggregate {
   private cloneWith(
     patch: Partial<{
       dateRange: DateRange
+      name: DisponibilidadName
+      description: DisponibilidadDescription
       segments: readonly SegmentoHorario[]
       domainEvents: readonly AvailabilityDomainEvent[]
     }>,
   ) {
     return new DisponibilidadAggregate({
       id: this._id,
-      workspaceId: this._workspaceId,
+      projectId: this._projectId,
+      name: patch.name ?? this._name,
+      description: patch.description ?? this._description,
       dateRange: patch.dateRange ?? this._dateRange,
       segments: patch.segments ?? this._segments,
       domainEvents: patch.domainEvents ?? this._domainEvents,
@@ -413,8 +471,8 @@ export class DisponibilidadAggregate {
     return this._id
   }
 
-  get workspaceId() {
-    return this._workspaceId
+  get projectId() {
+    return this._projectId
   }
 
   get startDate() {
@@ -423,6 +481,14 @@ export class DisponibilidadAggregate {
 
   get endDate() {
     return this._dateRange.end
+  }
+
+  get name() {
+    return this._name.value
+  }
+
+  get description() {
+    return this._description.value
   }
 
   get createdAt() {

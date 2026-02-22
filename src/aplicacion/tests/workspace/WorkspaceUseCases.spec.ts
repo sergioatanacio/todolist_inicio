@@ -23,6 +23,12 @@ class InMemoryWorkspaceRepository implements WorkspaceRepository {
     return this.store.get(id) ?? null
   }
 
+  findByOwnerUserId(ownerUserId: number) {
+    return [...this.store.values()].filter(
+      (workspace) => workspace.ownerUserId === ownerUserId,
+    )
+  }
+
   save(workspace: WorkspaceAggregate) {
     this.saveCalls += 1
     this.store.set(workspace.id, workspace)

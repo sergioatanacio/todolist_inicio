@@ -22,11 +22,15 @@ const assertThrows = (fn: () => void, expectedCode: DomainError['code']) => {
 
 export const disponibilidadAggregateSpec = () => {
   const disponibilidad = DisponibilidadAggregate.create({
-    workspaceId: 'ws-1',
+    projectId: 'prj-1',
+    name: 'Disponibilidad semanal',
+    description: 'Bloque base',
     startDate: '2026-02-01',
     endDate: '2026-02-28',
   })
   const withSegment = disponibilidad.addSegment({
+    name: 'Manana laboral',
+    description: 'Horario principal',
     startTime: '09:00',
     endTime: '11:00',
     daysOfWeek: [1, 2, 3, 4, 5],
