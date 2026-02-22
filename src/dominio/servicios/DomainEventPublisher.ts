@@ -8,18 +8,18 @@ type HasDomainEvents = {
 export class DomainEventPublisher {
   constructor(private readonly eventBus: DomainEventBus) {}
 
-  publishFrom(aggregate: HasDomainEvents) {
+  async publishFrom(aggregate: HasDomainEvents) {
     const events = aggregate.pullDomainEvents()
     if (events.length === 0) return
-    this.eventBus.publishMany(events)
+    await this.eventBus.publishMany(events)
   }
 
-  publishOne(event: AnyDomainEvent) {
-    this.eventBus.publish(event)
+  async publishOne(event: AnyDomainEvent) {
+    await this.eventBus.publish(event)
   }
 
-  publishMany(events: AnyDomainEvent[]) {
+  async publishMany(events: AnyDomainEvent[]) {
     if (events.length === 0) return
-    this.eventBus.publishMany(events)
+    await this.eventBus.publishMany(events)
   }
 }
