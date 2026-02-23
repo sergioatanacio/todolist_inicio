@@ -30,11 +30,13 @@ export const aiConversationAggregateSpec = () => {
 
   const proposedWrite = withMessages.proposeCommand({
     intent: 'CREATE_TASK',
-    payload: { title: 'Nueva tarea' },
+    payload: { title: 'Nueva tarea', workspaceId: 'ws-1', projectId: 'prj-1' },
     idempotencyKey: 'cmd-write-001',
+    proposedByUserId: 2,
   })
   const writeCommand = proposedWrite.commands[0]
   assert(writeCommand.requiresApproval, 'Write command should require approval')
+  assert(writeCommand.proposedByUserId === 2, 'Command should track proposer user id')
 
   assertThrows(
     () => proposedWrite.markExecuted(writeCommand.id, 1),
@@ -47,7 +49,7 @@ export const aiConversationAggregateSpec = () => {
 
   const proposedRead = executed.proposeCommand({
     intent: 'READ_TASKS_DUE_TOMORROW',
-    payload: {},
+    payload: { workspaceId: 'ws-1', projectId: 'prj-1' },
     idempotencyKey: 'cmd-read-001',
   })
   const readCommand = proposedRead.commands.find((entry) => entry.intent === 'READ_TASKS_DUE_TOMORROW')!
@@ -66,6 +68,16 @@ export const aiConversationAggregateSpec = () => {
         idempotencyKey: 'cmd-write-001',
       }),
     'DUPLICATE',
+  )
+
+  assertThrows(
+    () =>
+      readExecuted.proposeCommand({
+        intent: 'CREATE_TASK',
+        payload: { title: 'Fuera de contexto', workspaceId: 'ws-other' },
+        idempotencyKey: 'cmd-write-002',
+      }),
+    'CONFLICT',
   )
 
   const closed = readExecuted.close(1)

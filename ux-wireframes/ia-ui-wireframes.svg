@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" height="1500" viewBox="0 0 2200 1500">
+  <rect x="0" y="0" width="2200" height="1500" fill="white" stroke="black" stroke-width="1"/>
+  <text x="30" y="40" font-family="Arial" font-size="28" fill="black">Wireframes IA - Flujo Workspace / Proyecto (baja fidelidad)</text>
+
+  <rect x="30" y="70" width="210" height="1320" fill="none" stroke="black" stroke-width="1"/>
+  <text x="45" y="105" font-family="Arial" font-size="20">Menu</text>
+  <rect x="45" y="130" width="180" height="48" fill="none" stroke="black"/>
+  <text x="60" y="160" font-family="Arial" font-size="16">Workspaces</text>
+  <rect x="45" y="190" width="180" height="48" fill="none" stroke="black"/>
+  <text x="60" y="220" font-family="Arial" font-size="16">Proyectos</text>
+  <rect x="45" y="250" width="180" height="48" fill="none" stroke="black"/>
+  <text x="60" y="280" font-family="Arial" font-size="16">Disponibilidades</text>
+  <rect x="45" y="310" width="180" height="48" fill="none" stroke="black"/>
+  <text x="60" y="340" font-family="Arial" font-size="16">Listas</text>
+  <rect x="45" y="370" width="180" height="48" fill="none" stroke="black"/>
+  <text x="60" y="400" font-family="Arial" font-size="16">Calendar proyecto</text>
+  <rect x="45" y="430" width="180" height="48" fill="none" stroke="black"/>
+  <text x="60" y="460" font-family="Arial" font-size="16">IA Workspace</text>
+  <rect x="45" y="490" width="180" height="48" fill="none" stroke="black"/>
+  <text x="60" y="520" font-family="Arial" font-size="16">IA Proyecto</text>
+
+  <rect x="270" y="70" width="900" height="360" fill="none" stroke="black" stroke-width="2"/>
+  <text x="290" y="105" font-family="Arial" font-size="22">Pantalla A: IA Workspace (configuracion)</text>
+  <rect x="290" y="130" width="860" height="55" fill="none" stroke="black"/>
+  <text x="310" y="165" font-family="Arial" font-size="16">Contexto fijo: Usuario | Workspace actual</text>
+
+  <rect x="290" y="200" width="420" height="205" fill="none" stroke="black"/>
+  <text x="305" y="230" font-family="Arial" font-size="18">A1. Agente IA</text>
+  <text x="305" y="258" font-family="Arial" font-size="15">- Provider</text>
+  <text x="305" y="282" font-family="Arial" font-size="15">- Model</text>
+  <text x="305" y="306" font-family="Arial" font-size="15">- Estado: ACTIVE / PAUSED / REVOKED</text>
+  <rect x="305" y="325" width="120" height="30" fill="none" stroke="black"/>
+  <text x="315" y="345" font-family="Arial" font-size="14">Crear agente</text>
+  <rect x="435" y="325" width="90" height="30" fill="none" stroke="black"/>
+  <text x="453" y="345" font-family="Arial" font-size="14">Pausar</text>
+  <rect x="530" y="325" width="95" height="30" fill="none" stroke="black"/>
+  <text x="545" y="345" font-family="Arial" font-size="14">Activar</text>
+  <rect x="630" y="325" width="80" height="30" fill="none" stroke="black"/>
+  <text x="647" y="345" font-family="Arial" font-size="14">Revocar</text>
+
+  <rect x="730" y="200" width="420" height="205" fill="none" stroke="black"/>
+  <text x="745" y="230" font-family="Arial" font-size="18">A2. Credencial del usuario</text>
+  <text x="745" y="258" font-family="Arial" font-size="15">- provider</text>
+  <text x="745" y="282" font-family="Arial" font-size="15">- credentialRef</text>
+  <text x="745" y="306" font-family="Arial" font-size="15">- token secreto (solo input, no mostrar)</text>
+  <rect x="745" y="325" width="90" height="30" fill="none" stroke="black"/>
+  <text x="757" y="345" font-family="Arial" font-size="14">Registrar</text>
+  <rect x="840" y="325" width="75" height="30" fill="none" stroke="black"/>
+  <text x="853" y="345" font-family="Arial" font-size="14">Rotar</text>
+  <rect x="920" y="325" width="85" height="30" fill="none" stroke="black"/>
+  <text x="933" y="345" font-family="Arial" font-size="14">Revocar</text>
+  <rect x="1010" y="325" width="130" height="30" fill="none" stroke="black"/>
+  <text x="1020" y="345" font-family="Arial" font-size="14">Guardar token</text>
+
+  <rect x="1230" y="70" width="940" height="630" fill="none" stroke="black" stroke-width="2"/>
+  <text x="1250" y="105" font-family="Arial" font-size="22">Pantalla B: IA Proyecto (chat + comandos)</text>
+  <rect x="1250" y="130" width="900" height="55" fill="none" stroke="black"/>
+  <text x="1270" y="165" font-family="Arial" font-size="16">Contexto fijo: Usuario | Workspace | Proyecto | Lista (si aplica)</text>
+
+  <rect x="1250" y="200" width="420" height="480" fill="none" stroke="black"/>
+  <text x="1265" y="230" font-family="Arial" font-size="18">B1. Conversaciones</text>
+  <rect x="1265" y="245" width="390" height="40" fill="none" stroke="black"/>
+  <text x="1280" y="270" font-family="Arial" font-size="14">[Nueva conversacion]</text>
+  <rect x="1265" y="295" width="390" height="120" fill="none" stroke="black"/>
+  <text x="1280" y="320" font-family="Arial" font-size="14">Lista conversaciones:</text>
+  <text x="1280" y="345" font-family="Arial" font-size="14">- conv #1 OPEN</text>
+  <text x="1280" y="370" font-family="Arial" font-size="14">- conv #2 CLOSED</text>
+
+  <rect x="1265" y="425" width="390" height="240" fill="none" stroke="black"/>
+  <text x="1280" y="450" font-family="Arial" font-size="14">Chat (estilo ChatGPT)</text>
+  <text x="1280" y="475" font-family="Arial" font-size="14">USER: crea 3 tareas para manana</text>
+  <text x="1280" y="500" font-family="Arial" font-size="14">AGENT: propongo acciones...</text>
+  <rect x="1280" y="620" width="280" height="30" fill="none" stroke="black"/>
+  <text x="1290" y="640" font-family="Arial" font-size="13">input mensaje...</text>
+  <rect x="1570" y="620" width="75" height="30" fill="none" stroke="black"/>
+  <text x="1587" y="640" font-family="Arial" font-size="13">Enviar</text>
+
+  <rect x="1690" y="200" width="460" height="480" fill="none" stroke="black"/>
+  <text x="1705" y="230" font-family="Arial" font-size="18">B2. Cola de comandos propuestos</text>
+
+  <rect x="1705" y="245" width="430" height="105" fill="none" stroke="black"/>
+  <text x="1718" y="270" font-family="Arial" font-size="14">CREATE_TASK | PROPOSED | requiere aprobacion</text>
+  <text x="1718" y="292" font-family="Arial" font-size="14">payload: {todoListId, title, duration}</text>
+  <rect x="1718" y="310" width="80" height="28" fill="none" stroke="black"/>
+  <text x="1730" y="329" font-family="Arial" font-size="13">Aprobar</text>
+  <rect x="1805" y="310" width="78" height="28" fill="none" stroke="black"/>
+  <text x="1818" y="329" font-family="Arial" font-size="13">Rechazar</text>
+  <rect x="1890" y="310" width="78" height="28" fill="none" stroke="black"/>
+  <text x="1905" y="329" font-family="Arial" font-size="13">Ejecutar</text>
+
+  <rect x="1705" y="360" width="430" height="95" fill="none" stroke="black"/>
+  <text x="1718" y="386" font-family="Arial" font-size="14">READ_TASKS_DUE_TOMORROW | PROPOSED</text>
+  <text x="1718" y="408" font-family="Arial" font-size="14">(puede ejecutar directo)</text>
+  <rect x="1718" y="420" width="80" height="25" fill="none" stroke="black"/>
+  <text x="1734" y="437" font-family="Arial" font-size="13">Ejecutar</text>
+
+  <rect x="1705" y="465" width="430" height="200" fill="none" stroke="black"/>
+  <text x="1718" y="490" font-family="Arial" font-size="14">Resultado de ejecucion / errores:</text>
+  <text x="1718" y="515" font-family="Arial" font-size="14">- tarea creada</text>
+  <text x="1718" y="538" font-family="Arial" font-size="14">- sin token activo</text>
+  <text x="1718" y="561" font-family="Arial" font-size="14">- permiso insuficiente</text>
+
+  <rect x="270" y="470" width="900" height="350" fill="none" stroke="black" stroke-width="2"/>
+  <text x="290" y="505" font-family="Arial" font-size="22">Pantalla C: Modal guardar token (secure input)</text>
+  <rect x="290" y="530" width="860" height="270" fill="none" stroke="black"/>
+  <text x="310" y="565" font-family="Arial" font-size="16">workspaceId, userId, provider, credentialRef (readonly)</text>
+  <rect x="310" y="585" width="600" height="36" fill="none" stroke="black"/>
+  <text x="320" y="608" font-family="Arial" font-size="14">token API (password)</text>
+  <rect x="310" y="635" width="120" height="34" fill="none" stroke="black"/>
+  <text x="330" y="657" font-family="Arial" font-size="14">Guardar</text>
+  <rect x="440" y="635" width="100" height="34" fill="none" stroke="black"/>
+  <text x="470" y="657" font-family="Arial" font-size="14">Cerrar</text>
+  <text x="310" y="700" font-family="Arial" font-size="14">Nota: token no se muestra luego de guardado.</text>
+
+  <rect x="270" y="860" width="1900" height="500" fill="none" stroke="black" stroke-width="2"/>
+  <text x="290" y="895" font-family="Arial" font-size="22">Flujo de interaccion</text>
+  <text x="300" y="930" font-family="Arial" font-size="16">1) En IA Workspace: crear agente + registrar credencial + guardar token.</text>
+  <text x="300" y="960" font-family="Arial" font-size="16">2) En IA Proyecto: abrir/crear conversacion y enviar mensaje.</text>
+  <text x="300" y="990" font-family="Arial" font-size="16">3) El agente responde texto y propone comandos.</text>
+  <text x="300" y="1020" font-family="Arial" font-size="16">4) Usuario aprueba/rechaza/ejecuta segun estado y permisos.</text>
+  <text x="300" y="1050" font-family="Arial" font-size="16">5) Resultado impacta CRUD normal (proyectos, listas, tareas, calendario).</text>
+
+  <line x1="1170" y1="250" x2="1230" y2="250" stroke="black" stroke-width="2"/>
+  <polygon points="1230,250 1218,244 1218,256" fill="black"/>
+
+  <line x1="940" y1="340" x2="940" y2="470" stroke="black" stroke-width="2"/>
+  <polygon points="940,470 934,458 946,458" fill="black"/>
+
+  <line x1="760" y1="670" x2="1250" y2="620" stroke="black" stroke-width="2"/>
+  <polygon points="1250,620 1238,614 1240,626" fill="black"/>
+
+  <line x1="1655" y1="620" x2="1705" y2="310" stroke="black" stroke-width="2"/>
+  <polygon points="1705,310 1694,317 1707,321" fill="black"/>
+
+  <text x="1720" y="760" font-family="Arial" font-size="14">Leyenda:</text>
+  <text x="1720" y="785" font-family="Arial" font-size="14">- Solo tareas no DONE/ABANDONED van a calendario</text>
+  <text x="1720" y="810" font-family="Arial" font-size="14">- Write intents: aprobar antes de ejecutar</text>
+  <text x="1720" y="835" font-family="Arial" font-size="14">- Token por usuario+workspace</text>
+</svg>

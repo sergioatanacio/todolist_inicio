@@ -96,6 +96,49 @@ export const initDatabase = async () => {
       payload_json TEXT NOT NULL,
       updated_at INTEGER NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS ai_agents (
+      id TEXT PRIMARY KEY,
+      workspace_id TEXT NOT NULL,
+      created_by_user_id INTEGER NOT NULL,
+      state TEXT NOT NULL,
+      policy_json TEXT NOT NULL DEFAULT '{}',
+      payload_json TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS ai_conversations (
+      id TEXT PRIMARY KEY,
+      workspace_id TEXT NOT NULL,
+      agent_id TEXT NOT NULL,
+      state TEXT NOT NULL,
+      messages_json TEXT NOT NULL DEFAULT '[]',
+      commands_json TEXT NOT NULL DEFAULT '[]',
+      payload_json TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS ai_user_credentials (
+      id TEXT PRIMARY KEY,
+      workspace_id TEXT NOT NULL,
+      user_id INTEGER NOT NULL,
+      state TEXT NOT NULL,
+      payload_json TEXT NOT NULL,
+      updated_at INTEGER NOT NULL,
+      UNIQUE(workspace_id, user_id)
+    );
+    CREATE TABLE IF NOT EXISTS ai_secrets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      workspace_id TEXT NOT NULL,
+      user_id INTEGER NOT NULL,
+      provider TEXT NOT NULL,
+      credential_ref TEXT NOT NULL,
+      secret_value TEXT NOT NULL,
+      updated_at INTEGER NOT NULL,
+      UNIQUE(workspace_id, user_id, provider)
+    );
+    CREATE TABLE IF NOT EXISTS idempotency_keys (
+      key TEXT PRIMARY KEY,
+      metadata_json TEXT NOT NULL DEFAULT '{}',
+      created_at INTEGER NOT NULL
+    );
   `)
   // Compatibilidad con bases previas donde disponibilidades tenia workspace_id.
   try {
@@ -105,6 +148,21 @@ export const initDatabase = async () => {
   }
   try {
     db.exec('ALTER TABLE todos ADD COLUMN duration_minutes INTEGER NOT NULL DEFAULT 30')
+  } catch {
+    // Ignorar si ya existe.
+  }
+  try {
+    db.exec("ALTER TABLE ai_agents ADD COLUMN policy_json TEXT NOT NULL DEFAULT '{}'")
+  } catch {
+    // Ignorar si ya existe.
+  }
+  try {
+    db.exec("ALTER TABLE ai_conversations ADD COLUMN messages_json TEXT NOT NULL DEFAULT '[]'")
+  } catch {
+    // Ignorar si ya existe.
+  }
+  try {
+    db.exec("ALTER TABLE ai_conversations ADD COLUMN commands_json TEXT NOT NULL DEFAULT '[]'")
   } catch {
     // Ignorar si ya existe.
   }

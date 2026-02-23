@@ -10,7 +10,10 @@ import { TodoListAggregate } from '../../../dominio/entidades/TodoListAggregate.
 import { WorkspaceAggregate } from '../../../dominio/entidades/WorkspaceAggregate.ts'
 import type { AnyDomainEvent } from '../../../dominio/eventos/AnyDomainEvent.ts'
 import type { AiAgentRepository } from '../../../dominio/puertos/AiAgentRepository.ts'
+import type { AiChatGateway } from '../../../dominio/puertos/AiChatGateway.ts'
 import type { AiConversationRepository } from '../../../dominio/puertos/AiConversationRepository.ts'
+import type { AiCredentialSecretStore } from '../../../dominio/puertos/AiCredentialSecretStore.ts'
+import type { AiUserCredentialRepository } from '../../../dominio/puertos/AiUserCredentialRepository.ts'
 import type { DisponibilidadRepository } from '../../../dominio/puertos/DisponibilidadRepository.ts'
 import type { DomainEventBus } from '../../../dominio/puertos/DomainEventBus.ts'
 import type { IdempotencyRepository } from '../../../dominio/puertos/IdempotencyRepository.ts'
@@ -22,6 +25,7 @@ import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepo
 import { DomainError } from '../../../dominio/errores/DomainError.ts'
 import { AiAgentAggregate } from '../../../dominio/entidades/AiAgentAggregate.ts'
 import { AiConversationAggregate } from '../../../dominio/entidades/AiConversationAggregate.ts'
+import { AiUserCredentialAggregate } from '../../../dominio/entidades/AiUserCredentialAggregate.ts'
 
 const assert = (condition: boolean, message: string) => {
   if (!condition) throw new Error(message)
@@ -152,6 +156,53 @@ class InMemoryAiConversationRepository implements AiConversationRepository {
   }
 }
 
+class InMemoryAiUserCredentialRepository implements AiUserCredentialRepository {
+  private readonly store = new Map<string, AiUserCredentialAggregate>()
+  private key(workspaceId: string, userId: number) {
+    return `${workspaceId}::${userId}`
+  }
+  findByWorkspaceAndUser(workspaceId: string, userId: number) {
+    return this.store.get(this.key(workspaceId, userId)) ?? null
+  }
+  save(credential: AiUserCredentialAggregate) {
+    this.store.set(
+      this.key(credential.workspaceId, credential.userId),
+      credential,
+    )
+  }
+}
+
+class InMemoryAiCredentialSecretStore implements AiCredentialSecretStore {
+  private readonly store = new Map<string, string>()
+  put(data: {
+    workspaceId: string
+    userId: number
+    provider: string
+    credentialRef: string
+    secret: string
+  }) {
+    void data.workspaceId
+    void data.userId
+    void data.provider
+    this.store.set(data.credentialRef, data.secret)
+  }
+  getByCredentialRef(credentialRef: string) {
+    return this.store.get(credentialRef) ?? null
+  }
+  deleteByCredentialRef(credentialRef: string) {
+    this.store.delete(credentialRef)
+  }
+}
+
+class InMemoryAiChatGateway implements AiChatGateway {
+  async chat() {
+    return {
+      assistantMessage: 'ok',
+      toolCalls: [],
+    }
+  }
+}
+
 class InMemoryIdempotencyRepository implements IdempotencyRepository {
   private readonly keys = new Set<string>()
   exists(key: string) {
@@ -172,6 +223,9 @@ export const aiAssistantUseCasesAppSpec = async () => {
   const taskRepo = new InMemoryTaskRepository()
   const aiAgentRepo = new InMemoryAiAgentRepository()
   const aiConversationRepo = new InMemoryAiConversationRepository()
+  const aiUserCredentialRepo = new InMemoryAiUserCredentialRepository()
+  const aiSecretStore = new InMemoryAiCredentialSecretStore()
+  const aiChatGateway = new InMemoryAiChatGateway()
   const idempotencyRepo = new InMemoryIdempotencyRepository()
 
   const workspaceBase = WorkspaceAggregate.create(1, 'Workspace AI')
@@ -237,6 +291,9 @@ export const aiAssistantUseCasesAppSpec = async () => {
   const aiService = new AiAssistantAppService(
     aiAgentRepo,
     aiConversationRepo,
+    aiUserCredentialRepo,
+    aiSecretStore,
+    aiChatGateway,
     idempotencyRepo,
     workspaceRepo,
     projectRepo,
@@ -247,6 +304,20 @@ export const aiAssistantUseCasesAppSpec = async () => {
     disponibilidadAppService,
     taskPlanningAppService,
   )
+
+  await aiService.registerUserCredential({
+    workspaceId: workspaceWithMember.id,
+    userId: 2,
+    actorUserId: 2,
+    provider: 'openai',
+    credentialRef: 'user2-ref-12345',
+  })
+  await aiService.setUserCredentialSecret({
+    workspaceId: workspaceWithMember.id,
+    userId: 2,
+    actorUserId: 2,
+    secret: 'token-user-2',
+  })
 
   const agent = await aiService.createAgent({
     workspaceId: workspaceWithMember.id,
@@ -347,5 +418,38 @@ export const aiAssistantUseCasesAppSpec = async () => {
         actorUserId: 2,
       }),
     'CONFLICT',
+  )
+
+  const rotatedCredential = await aiService.rotateUserCredential({
+    workspaceId: workspaceWithMember.id,
+    userId: 2,
+    actorUserId: 2,
+    credentialRef: 'user2-ref-67890',
+  })
+  assert(rotatedCredential.credentialRef === 'user2-ref-67890', 'Credential should rotate')
+
+  await aiService.revokeUserCredential({
+    workspaceId: workspaceWithMember.id,
+    userId: 2,
+    actorUserId: 2,
+  })
+  const afterRevokeProposal = await aiService.proposeCommand({
+    conversationId: conversation.id,
+    actorUserId: 2,
+    intent: 'READ_TASKS_DUE_TOMORROW',
+    payload: {},
+    idempotencyKey: 'ai-read-after-revoke-001',
+  })
+  const afterRevokeRead = afterRevokeProposal.commands.find(
+    (cmd) => cmd.idempotencyKey === 'ai-read-after-revoke-001',
+  )!
+  await assertRejects(
+    () =>
+      aiService.executeCommand({
+        conversationId: conversation.id,
+        commandId: afterRevokeRead.id,
+        actorUserId: 2,
+      }),
+    'FORBIDDEN',
   )
 }

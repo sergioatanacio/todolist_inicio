@@ -6,12 +6,6 @@ export type AiAgentCreatedEvent = DomainEvent<{
   createdByUserId: number
 }> & { type: 'ai.agent.created' }
 
-export type AiAgentCredentialAttachedEvent = DomainEvent<{
-  agentId: string
-  credentialRef: string
-  actorUserId: number
-}> & { type: 'ai.agent.credential_attached' }
-
 export type AiAgentPolicyUpdatedEvent = DomainEvent<{
   agentId: string
   actorUserId: number
@@ -25,20 +19,12 @@ export type AiAgentStateChangedEvent = DomainEvent<{
 
 export type AiAgentDomainEvent =
   | AiAgentCreatedEvent
-  | AiAgentCredentialAttachedEvent
   | AiAgentPolicyUpdatedEvent
   | AiAgentStateChangedEvent
 
 export const aiAgentEvents = {
   created: (payload: AiAgentCreatedEvent['payload']): AiAgentCreatedEvent =>
     createDomainEvent('ai.agent.created', payload) as AiAgentCreatedEvent,
-  credentialAttached: (
-    payload: AiAgentCredentialAttachedEvent['payload'],
-  ): AiAgentCredentialAttachedEvent =>
-    createDomainEvent(
-      'ai.agent.credential_attached',
-      payload,
-    ) as AiAgentCredentialAttachedEvent,
   policyUpdated: (
     payload: AiAgentPolicyUpdatedEvent['payload'],
   ): AiAgentPolicyUpdatedEvent =>

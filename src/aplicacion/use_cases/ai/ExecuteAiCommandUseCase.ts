@@ -1,6 +1,7 @@
 import { domainError } from '../../../dominio/errores/DomainError'
 import type { AiAgentRepository } from '../../../dominio/puertos/AiAgentRepository'
 import type { AiConversationRepository } from '../../../dominio/puertos/AiConversationRepository'
+import type { AiUserCredentialRepository } from '../../../dominio/puertos/AiUserCredentialRepository'
 import type { IdempotencyRepository } from '../../../dominio/puertos/IdempotencyRepository'
 import type { ProjectRepository } from '../../../dominio/puertos/ProjectRepository'
 import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
@@ -44,6 +45,7 @@ export class ExecuteAiCommandUseCase {
   constructor(
     private readonly aiConversationRepository: AiConversationRepository,
     private readonly aiAgentRepository: AiAgentRepository,
+    private readonly aiUserCredentialRepository: AiUserCredentialRepository,
     private readonly workspaceRepository: WorkspaceRepository,
     private readonly projectRepository: ProjectRepository,
     private readonly idempotencyRepository: IdempotencyRepository,
@@ -94,18 +96,25 @@ export class ExecuteAiCommandUseCase {
           workspace,
           project,
           agent,
-          initiatorUserId: conversation.initiatorUserId,
+          initiatorUserId: input.actorUserId,
           intent: commandModel.intent,
         })
       ) {
         throw domainError('FORBIDDEN', 'El agente no puede ejecutar este comando')
+      }
+      const credential = this.aiUserCredentialRepository.findByWorkspaceAndUser(
+        conversation.workspaceId,
+        input.actorUserId,
+      )
+      if (!credential || credential.state !== 'ACTIVE') {
+        throw domainError('FORBIDDEN', 'El usuario no tiene credencial IA activa en el workspace')
       }
 
       try {
         const result = await this.executeIntent(
           conversation.workspaceId,
           conversation.projectId,
-          conversation.initiatorUserId,
+          input.actorUserId,
           commandModel.intent,
           commandModel.payload,
         )

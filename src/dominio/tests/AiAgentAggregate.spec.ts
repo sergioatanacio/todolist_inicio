@@ -26,10 +26,7 @@ export const aiAgentAggregateSpec = () => {
   })
   assert(agent.state === 'ACTIVE', 'Agent should start active')
 
-  const withCredential = agent.attachCredentialRef(1, 'secret-ref-12345')
-  assert(withCredential.credentialRef === 'secret-ref-12345', 'Credential ref should be attached')
-
-  const paused = withCredential.pause(1)
+  const paused = agent.pause(1)
   assert(paused.state === 'PAUSED', 'Agent should pause')
 
   const activeAgain = paused.activate(1)
@@ -37,6 +34,5 @@ export const aiAgentAggregateSpec = () => {
 
   const revoked = activeAgain.revoke(1)
   assert(revoked.state === 'REVOKED', 'Agent should be revoked')
-
-  assertThrows(() => revoked.attachCredentialRef(1, 'another-ref-123'), 'INVALID_STATE')
+  assertThrows(() => revoked.updatePolicy(1, { allowedIntents: ['CREATE_TASK'] }), 'INVALID_STATE')
 }

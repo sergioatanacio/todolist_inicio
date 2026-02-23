@@ -32,6 +32,7 @@ export class ProposeAiCommandUseCase {
         intent,
         payload: input.payload,
         idempotencyKey: input.idempotencyKey,
+        proposedByUserId: input.actorUserId,
       })
       this.aiConversationRepository.save(updated)
       await this.eventPublisher.publishFrom(updated)

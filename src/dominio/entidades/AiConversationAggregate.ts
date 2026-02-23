@@ -31,6 +31,7 @@ type AiConversationCommandPrimitives = {
   payload: Record<string, unknown>
   idempotencyKey: string
   requiresApproval: boolean
+  proposedByUserId?: number
   state: AiCommandState
   proposedAt: number
   approvedByUserId: number | null
@@ -85,6 +86,16 @@ const ensureActor = (actorUserId: number) => {
   if (!Number.isInteger(actorUserId) || actorUserId <= 0) {
     throw domainError('UNAUTHORIZED', 'Actor invalido')
   }
+}
+
+const readScopeValue = (payload: Record<string, unknown>, key: string) => {
+  const value = payload[key]
+  if (value == null) return null
+  if (typeof value !== 'string') {
+    throw domainError('VALIDATION_ERROR', `Payload invalido: ${key}`)
+  }
+  const normalized = value.trim()
+  return normalized.length > 0 ? normalized : null
 }
 
 export class AiConversationAggregate {
@@ -153,6 +164,7 @@ export class AiConversationAggregate {
     for (const command of data.commands) {
       parseAiIntentType(command.intent)
       AiCommandPayload.create(command.payload)
+      ensureActor(command.proposedByUserId ?? data.initiatorUserId)
       const key = IdempotencyKey.create(command.idempotencyKey).value
       if (idempotency.has(key)) {
         throw domainError('DUPLICATE', 'Idempotency key duplicado en conversacion')
@@ -171,7 +183,10 @@ export class AiConversationAggregate {
       agentId: data.agentId.trim(),
       state: data.state,
       messages: data.messages.map((item) => ({ ...item })),
-      commands: data.commands.map((item) => ({ ...item })),
+      commands: data.commands.map((item) => ({
+        ...item,
+        proposedByUserId: item.proposedByUserId ?? data.initiatorUserId,
+      })),
       domainEvents: data.domainEvents ?? [],
       createdAt: data.createdAt,
     })
@@ -260,9 +275,23 @@ export class AiConversationAggregate {
     intent: string
     payload: Record<string, unknown>
     idempotencyKey: string
+    proposedByUserId?: number
   }) {
     this.ensureOpen()
+    const proposedByUserId = data.proposedByUserId ?? this._initiatorUserId
+    ensureActor(proposedByUserId)
     const intent = parseAiIntentType(data.intent)
+    const payload = AiCommandPayload.create(data.payload).value
+    const payloadWorkspaceId = readScopeValue(payload, 'workspaceId')
+    if (payloadWorkspaceId && payloadWorkspaceId !== this._workspaceId) {
+      throw domainError('CONFLICT', 'El payload apunta a otro workspace')
+    }
+    const payloadProjectId = readScopeValue(payload, 'projectId')
+    if (payloadProjectId) {
+      if (!this._projectId || payloadProjectId !== this._projectId) {
+        throw domainError('CONFLICT', 'El payload apunta a otro proyecto')
+      }
+    }
     const key = IdempotencyKey.create(data.idempotencyKey).value
     if (this._commands.some((command) => command.idempotencyKey === key)) {
       throw domainError('DUPLICATE', 'Comando duplicado por idempotency key')
@@ -275,9 +304,10 @@ export class AiConversationAggregate {
         {
           id: commandId,
           intent,
-          payload: AiCommandPayload.create(data.payload).value,
+          payload,
           idempotencyKey: key,
           requiresApproval,
+          proposedByUserId,
           state: 'PROPOSED',
           proposedAt: Date.now(),
           approvedByUserId: null,
@@ -297,6 +327,7 @@ export class AiConversationAggregate {
           commandId,
           intent,
           requiresApproval,
+          proposedByUserId,
         }),
       ],
     })

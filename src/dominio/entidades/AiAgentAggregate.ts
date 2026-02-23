@@ -5,7 +5,6 @@ import {
   type AiAgentState,
 } from '../maquinas/ai/AiAgentStateMachine'
 import { AiAgentPolicy } from '../valores_objeto/AiAgentPolicy'
-import { AiCredentialRef } from '../valores_objeto/AiCredentialRef'
 import { type AiProvider, parseAiProvider } from '../valores_objeto/AiProvider'
 
 type AiAgentPrimitives = {
@@ -14,7 +13,6 @@ type AiAgentPrimitives = {
   createdByUserId: number
   provider: AiProvider
   model: string
-  credentialRef: string | null
   policy: ReturnType<AiAgentPolicy['toPrimitives']>
   state: AiAgentState
   domainEvents?: AiAgentDomainEvent[]
@@ -52,7 +50,6 @@ export class AiAgentAggregate {
   private readonly _createdByUserId: number
   private readonly _provider: AiProvider
   private readonly _model: string
-  private readonly _credentialRef: string | null
   private readonly _policy: AiAgentPolicy
   private readonly _state: AiAgentState
   private readonly _domainEvents: readonly AiAgentDomainEvent[]
@@ -64,7 +61,6 @@ export class AiAgentAggregate {
     createdByUserId: number
     provider: AiProvider
     model: string
-    credentialRef: string | null
     policy: AiAgentPolicy
     state: AiAgentState
     domainEvents: readonly AiAgentDomainEvent[]
@@ -75,7 +71,6 @@ export class AiAgentAggregate {
     this._createdByUserId = data.createdByUserId
     this._provider = data.provider
     this._model = data.model
-    this._credentialRef = data.credentialRef
     this._policy = data.policy
     this._state = data.state
     this._domainEvents = data.domainEvents
@@ -97,17 +92,16 @@ export class AiAgentAggregate {
       createdByUserId: data.createdByUserId,
       provider: parseAiProvider(data.provider),
       model: normalizeModel(data.model),
-      credentialRef: null,
       policy: AiAgentPolicy.create(data.policy),
       state: 'ACTIVE',
       domainEvents: [
         aiAgentEvents.created({
           agentId: id,
-          workspaceId: normalizeWorkspaceId(data.workspaceId),
-          createdByUserId: data.createdByUserId,
-        }),
-      ],
-      createdAt: Date.now(),
+      workspaceId: normalizeWorkspaceId(data.workspaceId),
+      createdByUserId: data.createdByUserId,
+    }),
+  ],
+  createdAt: Date.now(),
     })
   }
 
@@ -118,30 +112,10 @@ export class AiAgentAggregate {
       createdByUserId: data.createdByUserId,
       provider: parseAiProvider(data.provider),
       model: normalizeModel(data.model),
-      credentialRef: data.credentialRef ? AiCredentialRef.create(data.credentialRef).value : null,
       policy: AiAgentPolicy.create(data.policy),
       state: data.state,
       domainEvents: data.domainEvents ?? [],
       createdAt: data.createdAt,
-    })
-  }
-
-  attachCredentialRef(actorUserId: number, credentialRef: string) {
-    ensureActor(actorUserId)
-    if (this._state === 'REVOKED') {
-      throw domainError('INVALID_STATE', 'No se puede adjuntar credencial a un agente revocado')
-    }
-    const nextCredential = AiCredentialRef.create(credentialRef).value
-    return this.cloneWith({
-      credentialRef: nextCredential,
-      domainEvents: [
-        ...this._domainEvents,
-        aiAgentEvents.credentialAttached({
-          agentId: this._id,
-          credentialRef: nextCredential,
-          actorUserId,
-        }),
-      ],
     })
   }
 
@@ -224,7 +198,6 @@ export class AiAgentAggregate {
       createdByUserId: this._createdByUserId,
       provider: this._provider,
       model: this._model,
-      credentialRef: this._credentialRef,
       policy: this._policy.toPrimitives(),
       state: this._state,
       domainEvents: this._domainEvents.map((event) => ({ ...event })),
@@ -234,7 +207,6 @@ export class AiAgentAggregate {
 
   private cloneWith(
     patch: Partial<{
-      credentialRef: string | null
       policy: AiAgentPolicy
       state: AiAgentState
       domainEvents: readonly AiAgentDomainEvent[]
@@ -246,7 +218,6 @@ export class AiAgentAggregate {
       createdByUserId: this._createdByUserId,
       provider: this._provider,
       model: this._model,
-      credentialRef: patch.credentialRef ?? this._credentialRef,
       policy: patch.policy ?? this._policy,
       state: patch.state ?? this._state,
       domainEvents: patch.domainEvents ?? this._domainEvents,
@@ -272,10 +243,6 @@ export class AiAgentAggregate {
 
   get model() {
     return this._model
-  }
-
-  get credentialRef() {
-    return this._credentialRef
   }
 
   get policy() {

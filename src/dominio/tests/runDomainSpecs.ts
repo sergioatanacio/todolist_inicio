@@ -1,6 +1,7 @@
 import { aiAgentAggregateSpec } from './AiAgentAggregate.spec.ts'
 import { aiAuthorizationPolicySpec } from './AiAuthorizationPolicy.spec.ts'
 import { aiConversationAggregateSpec } from './AiConversationAggregate.spec.ts'
+import { aiUserCredentialAggregateSpec } from './AiUserCredentialAggregate.spec.ts'
 import { aiStateMachinesSpec } from './AiStateMachines.spec.ts'
 import { disponibilidadAggregateSpec } from './DisponibilidadAggregate.spec.ts'
 import { availabilityLifecycleStateMachineSpec } from './AvailabilityLifecycleStateMachine.spec.ts'
@@ -23,6 +24,7 @@ export const runDomainSpecs = () => {
   aiStateMachinesSpec()
   aiAgentAggregateSpec()
   aiConversationAggregateSpec()
+  aiUserCredentialAggregateSpec()
   aiAuthorizationPolicySpec()
   workspaceAggregateSpec()
   projectAccessStateMachineSpec()

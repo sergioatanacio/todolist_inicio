@@ -20,6 +20,7 @@ export type AiCommandProposedEvent = DomainEvent<{
   commandId: string
   intent: string
   requiresApproval: boolean
+  proposedByUserId: number
 }> & { type: 'ai.command.proposed' }
 
 export type AiCommandStateChangedEvent = DomainEvent<{
