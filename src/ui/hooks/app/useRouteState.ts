@@ -24,6 +24,7 @@ export const useRouteState = () => {
   const context = useMemo(() => {
     const workspaceId =
       route.kind === 'workspace' ||
+      route.kind === 'workspaceAi' ||
       route.kind === 'project' ||
       route.kind === 'availability' ||
       route.kind === 'availabilityCalendar' ||

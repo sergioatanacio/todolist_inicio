@@ -493,9 +493,9 @@ export class AiConversationAggregate {
       initiatorUserId: this._initiatorUserId,
       agentId: this._agentId,
       state: patch.state ?? this._state,
-      messages: patch.messages ?? this._messages,
-      commands: patch.commands ?? this._commands,
-      domainEvents: patch.domainEvents ?? this._domainEvents,
+      messages: [...(patch.messages ?? this._messages)],
+      commands: [...(patch.commands ?? this._commands)],
+      domainEvents: [...(patch.domainEvents ?? this._domainEvents)],
       createdAt: this._createdAt,
     })
   }

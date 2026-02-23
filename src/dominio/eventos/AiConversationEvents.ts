@@ -26,7 +26,7 @@ export type AiCommandProposedEvent = DomainEvent<{
 export type AiCommandStateChangedEvent = DomainEvent<{
   conversationId: string
   commandId: string
-  toState: 'APPROVED' | 'REJECTED' | 'EXECUTED' | 'FAILED'
+  toState: 'PROPOSED' | 'APPROVED' | 'REJECTED' | 'EXECUTED' | 'FAILED'
   actorUserId: number | null
 }> & { type: 'ai.command.state_changed' }
 

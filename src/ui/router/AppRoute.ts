@@ -5,11 +5,12 @@ export type AppRoute =
   | { kind: 'auth'; mode: AuthMode }
   | { kind: 'workspaces' }
   | { kind: 'workspace'; workspaceId: string }
+  | { kind: 'workspaceAi'; workspaceId: string }
   | {
       kind: 'project'
       workspaceId: string
       projectId: string
-      tab: 'overview' | 'disponibilidades' | 'lists' | 'calendar'
+      tab: 'overview' | 'disponibilidades' | 'lists' | 'calendar' | 'ai'
     }
   | {
       kind: 'availability'
@@ -48,15 +49,20 @@ export const parseRoute = (): AppRoute => {
     return { kind: 'workspace', workspaceId: decodeURIComponent(workspace[1]) }
   }
 
+  const workspaceAi = p.match(/^\/app\/workspaces\/([^/]+)\/ai$/)
+  if (workspaceAi) {
+    return { kind: 'workspaceAi', workspaceId: decodeURIComponent(workspaceAi[1]) }
+  }
+
   const project = p.match(
-    /^\/app\/workspaces\/([^/]+)\/projects\/([^/]+)\/(overview|disponibilidades|lists|calendar)$/,
+    /^\/app\/workspaces\/([^/]+)\/projects\/([^/]+)\/(overview|disponibilidades|lists|calendar|ai)$/,
   )
   if (project) {
     return {
       kind: 'project',
       workspaceId: decodeURIComponent(project[1]),
       projectId: decodeURIComponent(project[2]),
-      tab: project[3] as 'overview' | 'disponibilidades' | 'lists' | 'calendar',
+      tab: project[3] as 'overview' | 'disponibilidades' | 'lists' | 'calendar' | 'ai',
     }
   }
 

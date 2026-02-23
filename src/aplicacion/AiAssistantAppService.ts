@@ -47,6 +47,9 @@ import { StartAiConversationUseCase } from './use_cases/ai/StartAiConversationUs
 import { UpdateAiAgentPolicyUseCase } from './use_cases/ai/UpdateAiAgentPolicyUseCase'
 
 export class AiAssistantAppService {
+  private readonly aiAgentRepository: AiAgentRepository
+  private readonly aiConversationRepository: AiConversationRepository
+  private readonly aiUserCredentialRepository: AiUserCredentialRepository
   private readonly createAiAgentUseCase: CreateAiAgentUseCase
   private readonly registerAiUserCredentialUseCase: RegisterAiUserCredentialUseCase
   private readonly rotateAiUserCredentialUseCase: RotateAiUserCredentialUseCase
@@ -80,6 +83,9 @@ export class AiAssistantAppService {
     disponibilidadAppService: DisponibilidadAppService,
     taskPlanningAppService: TaskPlanningAppService,
   ) {
+    this.aiAgentRepository = aiAgentRepository
+    this.aiConversationRepository = aiConversationRepository
+    this.aiUserCredentialRepository = aiUserCredentialRepository
     const eventPublisher = new DomainEventPublisher(eventBus)
     this.createAiAgentUseCase = new CreateAiAgentUseCase(
       aiAgentRepository,
@@ -249,5 +255,21 @@ export class AiAssistantAppService {
 
   sendChatMessage(command: SendAiChatMessageCommand) {
     return this.sendAiChatMessageUseCase.execute(command)
+  }
+
+  listAgentsByWorkspace(workspaceId: string) {
+    return this.aiAgentRepository.findByWorkspaceId(workspaceId)
+  }
+
+  listConversationsByWorkspace(workspaceId: string) {
+    return this.aiConversationRepository.findByWorkspaceId(workspaceId)
+  }
+
+  findConversationById(conversationId: string) {
+    return this.aiConversationRepository.findById(conversationId)
+  }
+
+  findUserCredential(workspaceId: string, userId: number) {
+    return this.aiUserCredentialRepository.findByWorkspaceAndUser(workspaceId, userId)
   }
 }

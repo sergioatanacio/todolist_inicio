@@ -12,6 +12,8 @@ import { ListsScreen } from './ui/features/lists/ListsScreen'
 import { KanbanScreen } from './ui/features/kanban/KanbanScreen'
 import { ProjectCalendarScreen } from './ui/features/calendars/ProjectCalendarScreen'
 import { AvailabilityCalendarScreen } from './ui/features/calendars/AvailabilityCalendarScreen'
+import { WorkspaceAiScreen } from './ui/features/ai/WorkspaceAiScreen'
+import { ProjectAiScreen } from './ui/features/ai/ProjectAiScreen'
 
 function App() {
   const { state, forms, setForms, actions } = useAppController()
@@ -75,6 +77,7 @@ function App() {
           projectId={projectId}
           onGoWorkspaces={() => actions.navigate('/app/workspaces')}
           onGoWorkspaceProjects={(wsId) => actions.navigate(`/app/workspaces/${wsId}`)}
+          onGoWorkspaceAi={(wsId) => actions.navigate(`/app/workspaces/${wsId}/ai`)}
           onGoProjectOverview={(wsId, prjId) =>
             actions.navigate(`/app/workspaces/${wsId}/projects/${prjId}/overview`)
           }
@@ -86,6 +89,9 @@ function App() {
           }
           onGoProjectCalendar={(wsId, prjId) =>
             actions.navigate(`/app/workspaces/${wsId}/projects/${prjId}/calendar`)
+          }
+          onGoProjectAi={(wsId, prjId) =>
+            actions.navigate(`/app/workspaces/${wsId}/projects/${prjId}/ai`)
           }
         />
       }
@@ -115,6 +121,39 @@ function App() {
           onOpenProject={(wsId, prjId) =>
             actions.navigate(`/app/workspaces/${wsId}/projects/${prjId}/overview`)
           }
+        />
+      ) : null}
+
+      {state.route.kind === 'workspaceAi' ? (
+        <WorkspaceAiScreen
+          agents={state.aiAgents}
+          selectedAgentId={forms.aiSelectedAgentId}
+          onSelectAgent={setForms.setAiSelectedAgentId}
+          credential={state.aiUserCredential}
+          provider={forms.aiAgentProvider}
+          model={forms.aiAgentModel}
+          allowedIntentsCsv={forms.aiAllowedIntentsCsv}
+          requireApprovalForWrites={forms.aiRequireApprovalForWrites}
+          credentialProvider={forms.aiCredentialProvider}
+          credentialRef={forms.aiCredentialRef}
+          credentialSecret={forms.aiCredentialSecret}
+          onProviderChange={setForms.setAiAgentProvider}
+          onModelChange={setForms.setAiAgentModel}
+          onAllowedIntentsCsvChange={setForms.setAiAllowedIntentsCsv}
+          onRequireApprovalChange={setForms.setAiRequireApprovalForWrites}
+          onCredentialProviderChange={setForms.setAiCredentialProvider}
+          onCredentialRefChange={setForms.setAiCredentialRef}
+          onCredentialSecretChange={setForms.setAiCredentialSecret}
+          onCreateAgent={() => void actions.createAiAgent()}
+          onPauseAgent={(agentId) => void actions.setAiAgentState(agentId, 'pause')}
+          onActivateAgent={(agentId) => void actions.setAiAgentState(agentId, 'activate')}
+          onRevokeAgent={(agentId) => void actions.setAiAgentState(agentId, 'revoke')}
+          onRegisterCredential={() => void actions.registerAiCredential()}
+          onRotateCredential={() => void actions.rotateAiCredential()}
+          onRevokeCredential={() => void actions.revokeAiCredential()}
+          onSaveSecret={() => void actions.saveAiCredentialSecret()}
+          busy={state.busy}
+          error={state.errors.aiWorkspace}
         />
       ) : null}
 
@@ -220,6 +259,23 @@ function App() {
               `/app/workspaces/${currentWorkspaceId}/projects/${currentProjectId}/lists/${listId}/kanban`,
             )
           }
+        />
+      ) : null}
+
+      {state.route.kind === 'project' && state.route.tab === 'ai' ? (
+        <ProjectAiScreen
+          conversations={state.aiConversations}
+          selectedConversationId={state.aiSelectedConversationId}
+          message={forms.aiChatMessage}
+          onMessageChange={setForms.setAiChatMessage}
+          onSelectConversation={actions.selectAiConversation}
+          onStartConversation={() => void actions.startAiConversation()}
+          onSendMessage={() => void actions.sendAiChatMessage()}
+          onApproveCommand={(commandId) => void actions.approveAiCommand(commandId)}
+          onRejectCommand={(commandId) => void actions.rejectAiCommand(commandId)}
+          onExecuteCommand={(commandId) => void actions.executeAiCommand(commandId)}
+          busy={state.busy}
+          error={state.errors.aiProject}
         />
       ) : null}
 

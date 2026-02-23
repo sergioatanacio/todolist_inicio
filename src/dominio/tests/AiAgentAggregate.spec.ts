@@ -34,5 +34,12 @@ export const aiAgentAggregateSpec = () => {
 
   const revoked = activeAgain.revoke(1)
   assert(revoked.state === 'REVOKED', 'Agent should be revoked')
-  assertThrows(() => revoked.updatePolicy(1, { allowedIntents: ['CREATE_TASK'] }), 'INVALID_STATE')
+  assertThrows(
+    () =>
+      revoked.updatePolicy(1, {
+        allowedIntents: ['CREATE_TASK'],
+        requireApprovalForWrites: true,
+      }),
+    'INVALID_STATE',
+  )
 }

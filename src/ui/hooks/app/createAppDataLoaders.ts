@@ -8,6 +8,12 @@ type LoaderDependencies = {
   setLists: (rows: AppControllerState['lists']) => void
   setKanban: (rows: AppControllerState['kanban']) => void
   setSelectedDispId: (value: string | ((current: string) => string)) => void
+  setAiAgents: (rows: AppControllerState['aiAgents']) => void
+  setAiConversations: (rows: AppControllerState['aiConversations']) => void
+  setAiSelectedConversationId: (
+    value: string | null | ((current: string | null) => string | null),
+  ) => void
+  setAiUserCredential: (row: AppControllerState['aiUserCredential']) => void
 }
 
 export const createAppDataLoaders = (deps: LoaderDependencies) => {
@@ -98,10 +104,85 @@ export const createAppDataLoaders = (deps: LoaderDependencies) => {
     })
   }
 
+  const loadAiWorkspaceContext = (
+    services: AppServices,
+    workspaceId: string,
+    userId: number,
+  ) => {
+    const agents = services.aiAssistant
+      .listAgentsByWorkspace(workspaceId)
+      .map((agent) => ({
+        id: agent.id,
+        workspaceId: agent.workspaceId,
+        provider: agent.provider,
+        model: agent.model,
+        state: agent.state,
+        allowedIntents: agent.policy.allowedIntents,
+        requireApprovalForWrites: agent.policy.requireApprovalForWrites,
+      }))
+    deps.setAiAgents(agents)
+    deps.setAiUserCredential(
+      (() => {
+        const credential = services.aiAssistant.findUserCredential(workspaceId, userId)
+        if (!credential) return null
+        return {
+          id: credential.id,
+          workspaceId: credential.workspaceId,
+          userId: credential.userId,
+          provider: credential.provider,
+          credentialRef: credential.credentialRef,
+          state: credential.state,
+        }
+      })(),
+    )
+  }
+
+  const loadAiProjectContext = (
+    services: AppServices,
+    workspaceId: string,
+    projectId: string,
+    userId: number,
+  ) => {
+    loadAiWorkspaceContext(services, workspaceId, userId)
+    const conversations = services.aiAssistant
+      .listConversationsByWorkspace(workspaceId)
+      .filter((conversation) => conversation.projectId === projectId)
+      .map((conversation) => ({
+        id: conversation.id,
+        workspaceId: conversation.workspaceId,
+        projectId: conversation.projectId,
+        state: conversation.state,
+        initiatorUserId: conversation.initiatorUserId,
+        agentId: conversation.agentId,
+        messages: conversation.messages.map((message) => ({
+          id: message.id,
+          role: message.role,
+          authorUserId: message.authorUserId,
+          body: message.body,
+          createdAt: message.createdAt,
+        })),
+        commands: conversation.commands.map((command) => ({
+          id: command.id,
+          intent: command.intent,
+          payload: command.payload,
+          requiresApproval: command.requiresApproval,
+          state: command.state,
+          proposedByUserId: command.proposedByUserId ?? conversation.initiatorUserId,
+        })),
+      }))
+    deps.setAiConversations(conversations)
+    deps.setAiSelectedConversationId((current) => {
+      if (current && conversations.some((item) => item.id === current)) return current
+      return conversations[0]?.id ?? null
+    })
+  }
+
   return {
     loadWorkspaces,
     loadWorkspaceContext,
     loadProjectContext,
     loadKanban,
+    loadAiWorkspaceContext,
+    loadAiProjectContext,
   }
 }

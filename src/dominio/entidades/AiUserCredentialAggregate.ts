@@ -166,7 +166,7 @@ export class AiUserCredentialAggregate {
       provider: this._provider,
       credentialRef: patch.credentialRef ?? this._credentialRef,
       state: patch.state ?? this._state,
-      domainEvents: patch.domainEvents ?? this._domainEvents,
+      domainEvents: [...(patch.domainEvents ?? this._domainEvents)],
       createdAt: this._createdAt,
     })
   }

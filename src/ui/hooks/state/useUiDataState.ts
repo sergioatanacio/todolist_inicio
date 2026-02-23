@@ -28,6 +28,16 @@ export const useUiDataState = () => {
   const [availabilityPlan, setAvailabilityPlan] = useState<
     AppControllerState['availabilityPlan']
   >(null)
+  const [aiAgents, setAiAgents] = useState<AppControllerState['aiAgents']>([])
+  const [aiConversations, setAiConversations] = useState<AppControllerState['aiConversations']>(
+    [],
+  )
+  const [aiSelectedConversationId, setAiSelectedConversationId] = useState<
+    AppControllerState['aiSelectedConversationId']
+  >(null)
+  const [aiUserCredential, setAiUserCredential] = useState<AppControllerState['aiUserCredential']>(
+    null,
+  )
 
   const data = useMemo(
     () => ({
@@ -38,8 +48,24 @@ export const useUiDataState = () => {
       kanban,
       projectCalendar,
       availabilityPlan,
+      aiAgents,
+      aiConversations,
+      aiSelectedConversationId,
+      aiUserCredential,
     }),
-    [workspaces, projects, disponibilidades, lists, kanban, projectCalendar, availabilityPlan],
+    [
+      workspaces,
+      projects,
+      disponibilidades,
+      lists,
+      kanban,
+      projectCalendar,
+      availabilityPlan,
+      aiAgents,
+      aiConversations,
+      aiSelectedConversationId,
+      aiUserCredential,
+    ],
   )
 
   const setters = useMemo(
@@ -51,6 +77,10 @@ export const useUiDataState = () => {
       setKanban,
       setProjectCalendar,
       setAvailabilityPlan,
+      setAiAgents,
+      setAiConversations,
+      setAiSelectedConversationId,
+      setAiUserCredential,
     }),
     [],
   )
@@ -65,6 +95,12 @@ export const useUiDataState = () => {
       clearKanban: () => setKanban(createEmptyKanban()),
       clearProjectCalendar: () => setProjectCalendar(emptyProjectCalendar),
       clearAvailabilityPlan: () => setAvailabilityPlan(null),
+      clearAiContext: () => {
+        setAiAgents([])
+        setAiConversations([])
+        setAiSelectedConversationId(null)
+        setAiUserCredential(null)
+      },
     }),
     [],
   )

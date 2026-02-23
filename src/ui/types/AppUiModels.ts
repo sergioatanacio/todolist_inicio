@@ -79,6 +79,55 @@ export type UiErrors = {
   segment: string | null
   list: string | null
   task: string | null
+  aiWorkspace: string | null
+  aiProject: string | null
+}
+
+export type AiAgentVm = {
+  id: string
+  workspaceId: string
+  provider: string
+  model: string
+  state: 'ACTIVE' | 'PAUSED' | 'REVOKED'
+  allowedIntents: string[]
+  requireApprovalForWrites: boolean
+}
+
+export type AiUserCredentialVm = {
+  id: string
+  workspaceId: string
+  userId: number
+  provider: string
+  credentialRef: string
+  state: 'ACTIVE' | 'REVOKED'
+} | null
+
+export type AiConversationMessageVm = {
+  id: string
+  role: 'USER' | 'AGENT' | 'SYSTEM'
+  authorUserId: number | null
+  body: string
+  createdAt: number
+}
+
+export type AiConversationCommandVm = {
+  id: string
+  intent: string
+  payload: Record<string, unknown>
+  requiresApproval: boolean
+  state: 'PROPOSED' | 'APPROVED' | 'REJECTED' | 'EXECUTED' | 'FAILED'
+  proposedByUserId: number
+}
+
+export type AiConversationVm = {
+  id: string
+  workspaceId: string
+  projectId: string | null
+  state: 'OPEN' | 'CLOSED'
+  initiatorUserId: number
+  agentId: string
+  messages: AiConversationMessageVm[]
+  commands: AiConversationCommandVm[]
 }
 
 export type AppControllerContextIds = {
@@ -104,5 +153,9 @@ export type AppControllerState = {
   kanban: Record<TaskStatus, TaskVm[]>
   projectCalendar: ProjectCalendarVm
   availabilityPlan: AvailabilityPlanVm | null
+  aiAgents: AiAgentVm[]
+  aiConversations: AiConversationVm[]
+  aiSelectedConversationId: string | null
+  aiUserCredential: AiUserCredentialVm
   context: AppControllerContextIds
 }

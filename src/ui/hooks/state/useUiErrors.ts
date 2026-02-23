@@ -9,6 +9,8 @@ const initialErrors: UiErrors = {
   segment: null,
   list: null,
   task: null,
+  aiWorkspace: null,
+  aiProject: null,
 }
 
 export const useUiErrors = () => {

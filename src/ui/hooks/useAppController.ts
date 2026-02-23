@@ -17,6 +17,11 @@ import {
 import type { AppControllerState, TaskStatus } from '../types/AppUiModels'
 
 const SESSION_KEY = 'todo_user_id'
+const parseCsvStrings = (value: string) =>
+  value
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0)
 
 export type AppController = {
   state: AppControllerState
@@ -33,6 +38,21 @@ export type AppController = {
     createList: () => Promise<void>
     createTask: () => Promise<void>
     changeStatus: (taskId: string, toStatus: TaskStatus) => Promise<void>
+    createAiAgent: () => Promise<void>
+    setAiAgentState: (
+      agentId: string,
+      action: 'pause' | 'activate' | 'revoke',
+    ) => Promise<void>
+    registerAiCredential: () => Promise<void>
+    rotateAiCredential: () => Promise<void>
+    revokeAiCredential: () => Promise<void>
+    saveAiCredentialSecret: () => Promise<void>
+    startAiConversation: () => Promise<void>
+    selectAiConversation: (conversationId: string) => void
+    sendAiChatMessage: () => Promise<void>
+    approveAiCommand: (commandId: string) => Promise<void>
+    rejectAiCommand: (commandId: string) => Promise<void>
+    executeAiCommand: (commandId: string) => Promise<void>
     setAuthMode: (mode: 'login' | 'register') => void
   }
 }
@@ -138,6 +158,24 @@ export const useAppController = (): AppController => {
       )
     } else {
       clearers.clearAvailabilityPlan()
+    }
+
+    if (route.kind === 'workspaceAi' && context.workspaceId) {
+      loaders.loadAiWorkspaceContext(services, context.workspaceId, userId)
+    } else if (
+      route.kind === 'project' &&
+      route.tab === 'ai' &&
+      context.workspaceId &&
+      context.projectId
+    ) {
+      loaders.loadAiProjectContext(
+        services,
+        context.workspaceId,
+        context.projectId,
+        userId,
+      )
+    } else {
+      clearers.clearAiContext()
     }
   }, [clearers, context, loaders, route, setters, userId])
 
@@ -385,6 +423,274 @@ export const useAppController = (): AppController => {
     }
   }
 
+  const createAiAgent = async () => {
+    const services = servicesRef.current
+    if (!services || userId === null || !context.workspaceId) return
+    setBusy(true)
+    setError('aiWorkspace', null)
+    try {
+      await services.aiAssistant.createAgent({
+        workspaceId: context.workspaceId,
+        actorUserId: userId,
+        provider: forms.aiAgentProvider,
+        model: forms.aiAgentModel,
+        policy: {
+          allowedIntents: parseCsvStrings(forms.aiAllowedIntentsCsv),
+          requireApprovalForWrites: forms.aiRequireApprovalForWrites,
+        },
+      })
+      loaders.loadAiWorkspaceContext(services, context.workspaceId, userId)
+    } catch (error) {
+      setError('aiWorkspace', error instanceof Error ? error.message : 'No se pudo crear agente.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const setAiAgentState = async (
+    agentId: string,
+    action: 'pause' | 'activate' | 'revoke',
+  ) => {
+    const services = servicesRef.current
+    if (!services || userId === null || !context.workspaceId) return
+    setBusy(true)
+    setError('aiWorkspace', null)
+    try {
+      await services.aiAssistant.setAgentState({
+        agentId,
+        actorUserId: userId,
+        action,
+      })
+      loaders.loadAiWorkspaceContext(services, context.workspaceId, userId)
+    } catch (error) {
+      setError(
+        'aiWorkspace',
+        error instanceof Error ? error.message : 'No se pudo actualizar estado del agente.',
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const registerAiCredential = async () => {
+    const services = servicesRef.current
+    if (!services || userId === null || !context.workspaceId) return
+    setBusy(true)
+    setError('aiWorkspace', null)
+    try {
+      await services.aiAssistant.registerUserCredential({
+        workspaceId: context.workspaceId,
+        userId,
+        actorUserId: userId,
+        provider: forms.aiCredentialProvider,
+        credentialRef: forms.aiCredentialRef,
+      })
+      loaders.loadAiWorkspaceContext(services, context.workspaceId, userId)
+    } catch (error) {
+      setError('aiWorkspace', error instanceof Error ? error.message : 'No se pudo registrar credencial.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const rotateAiCredential = async () => {
+    const services = servicesRef.current
+    if (!services || userId === null || !context.workspaceId) return
+    setBusy(true)
+    setError('aiWorkspace', null)
+    try {
+      await services.aiAssistant.rotateUserCredential({
+        workspaceId: context.workspaceId,
+        userId,
+        actorUserId: userId,
+        credentialRef: forms.aiCredentialRef,
+      })
+      loaders.loadAiWorkspaceContext(services, context.workspaceId, userId)
+    } catch (error) {
+      setError('aiWorkspace', error instanceof Error ? error.message : 'No se pudo rotar credencial.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const revokeAiCredential = async () => {
+    const services = servicesRef.current
+    if (!services || userId === null || !context.workspaceId) return
+    setBusy(true)
+    setError('aiWorkspace', null)
+    try {
+      await services.aiAssistant.revokeUserCredential({
+        workspaceId: context.workspaceId,
+        userId,
+        actorUserId: userId,
+      })
+      loaders.loadAiWorkspaceContext(services, context.workspaceId, userId)
+    } catch (error) {
+      setError('aiWorkspace', error instanceof Error ? error.message : 'No se pudo revocar credencial.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const saveAiCredentialSecret = async () => {
+    const services = servicesRef.current
+    if (!services || userId === null || !context.workspaceId) return
+    setBusy(true)
+    setError('aiWorkspace', null)
+    try {
+      await services.aiAssistant.setUserCredentialSecret({
+        workspaceId: context.workspaceId,
+        userId,
+        actorUserId: userId,
+        secret: forms.aiCredentialSecret,
+      })
+      setForms.setAiCredentialSecret('')
+      loaders.loadAiWorkspaceContext(services, context.workspaceId, userId)
+    } catch (error) {
+      setError('aiWorkspace', error instanceof Error ? error.message : 'No se pudo guardar token.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const startAiConversation = async () => {
+    const services = servicesRef.current
+    const agentId = forms.aiSelectedAgentId || data.aiAgents[0]?.id
+    if (!services || userId === null || !context.workspaceId || !context.projectId || !agentId) return
+    setBusy(true)
+    setError('aiProject', null)
+    try {
+      await services.aiAssistant.startConversation({
+        workspaceId: context.workspaceId,
+        projectId: context.projectId,
+        actorUserId: userId,
+        agentId,
+      })
+      loaders.loadAiProjectContext(services, context.workspaceId, context.projectId, userId)
+    } catch (error) {
+      setError('aiProject', error instanceof Error ? error.message : 'No se pudo iniciar conversacion.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const selectAiConversation = (conversationId: string) => {
+    setters.setAiSelectedConversationId(conversationId)
+  }
+
+  const sendAiChatMessage = async () => {
+    const services = servicesRef.current
+    const conversationId = data.aiSelectedConversationId
+    if (
+      !services ||
+      userId === null ||
+      !context.workspaceId ||
+      !context.projectId ||
+      !conversationId
+    ) {
+      return
+    }
+    setBusy(true)
+    setError('aiProject', null)
+    try {
+      await services.aiAssistant.sendChatMessage({
+        conversationId,
+        actorUserId: userId,
+        message: forms.aiChatMessage,
+      })
+      setForms.setAiChatMessage('')
+      loaders.loadAiProjectContext(services, context.workspaceId, context.projectId, userId)
+    } catch (error) {
+      setError('aiProject', error instanceof Error ? error.message : 'No se pudo enviar mensaje.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const approveAiCommand = async (commandId: string) => {
+    const services = servicesRef.current
+    const conversationId = data.aiSelectedConversationId
+    if (
+      !services ||
+      userId === null ||
+      !context.workspaceId ||
+      !context.projectId ||
+      !conversationId
+    ) {
+      return
+    }
+    setBusy(true)
+    setError('aiProject', null)
+    try {
+      await services.aiAssistant.approveCommand({
+        conversationId,
+        commandId,
+        actorUserId: userId,
+      })
+      loaders.loadAiProjectContext(services, context.workspaceId, context.projectId, userId)
+    } catch (error) {
+      setError('aiProject', error instanceof Error ? error.message : 'No se pudo aprobar comando.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const rejectAiCommand = async (commandId: string) => {
+    const services = servicesRef.current
+    const conversationId = data.aiSelectedConversationId
+    if (
+      !services ||
+      userId === null ||
+      !context.workspaceId ||
+      !context.projectId ||
+      !conversationId
+    ) {
+      return
+    }
+    setBusy(true)
+    setError('aiProject', null)
+    try {
+      await services.aiAssistant.rejectCommand({
+        conversationId,
+        commandId,
+        actorUserId: userId,
+      })
+      loaders.loadAiProjectContext(services, context.workspaceId, context.projectId, userId)
+    } catch (error) {
+      setError('aiProject', error instanceof Error ? error.message : 'No se pudo rechazar comando.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const executeAiCommand = async (commandId: string) => {
+    const services = servicesRef.current
+    const conversationId = data.aiSelectedConversationId
+    if (
+      !services ||
+      userId === null ||
+      !context.workspaceId ||
+      !context.projectId ||
+      !conversationId
+    ) {
+      return
+    }
+    setBusy(true)
+    setError('aiProject', null)
+    try {
+      await services.aiAssistant.executeCommand({
+        conversationId,
+        commandId,
+        actorUserId: userId,
+      })
+      loaders.loadAiProjectContext(services, context.workspaceId, context.projectId, userId)
+    } catch (error) {
+      setError('aiProject', error instanceof Error ? error.message : 'No se pudo ejecutar comando.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const state: AppControllerState = {
     ready,
     route,
@@ -401,6 +707,10 @@ export const useAppController = (): AppController => {
     kanban: data.kanban,
     projectCalendar: data.projectCalendar,
     availabilityPlan: data.availabilityPlan,
+    aiAgents: data.aiAgents,
+    aiConversations: data.aiConversations,
+    aiSelectedConversationId: data.aiSelectedConversationId,
+    aiUserCredential: data.aiUserCredential,
     context,
   }
 
@@ -419,6 +729,18 @@ export const useAppController = (): AppController => {
       createList,
       createTask,
       changeStatus,
+      createAiAgent,
+      setAiAgentState,
+      registerAiCredential,
+      rotateAiCredential,
+      revokeAiCredential,
+      saveAiCredentialSecret,
+      startAiConversation,
+      selectAiConversation,
+      sendAiChatMessage,
+      approveAiCommand,
+      rejectAiCommand,
+      executeAiCommand,
       setAuthMode,
     },
   }

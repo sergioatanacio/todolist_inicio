@@ -23,6 +23,15 @@ export type UiForms = {
   selectedDispId: string
   taskTitle: string
   taskDuration: string
+  aiAgentProvider: string
+  aiAgentModel: string
+  aiAllowedIntentsCsv: string
+  aiRequireApprovalForWrites: boolean
+  aiCredentialProvider: string
+  aiCredentialRef: string
+  aiCredentialSecret: string
+  aiChatMessage: string
+  aiSelectedAgentId: string
 }
 
 export type UiFormSetters = {
@@ -48,6 +57,15 @@ export type UiFormSetters = {
   setSelectedDispId: Dispatch<SetStateAction<string>>
   setTaskTitle: (value: string) => void
   setTaskDuration: (value: string) => void
+  setAiAgentProvider: (value: string) => void
+  setAiAgentModel: (value: string) => void
+  setAiAllowedIntentsCsv: (value: string) => void
+  setAiRequireApprovalForWrites: (value: boolean) => void
+  setAiCredentialProvider: (value: string) => void
+  setAiCredentialRef: (value: string) => void
+  setAiCredentialSecret: (value: string) => void
+  setAiChatMessage: (value: string) => void
+  setAiSelectedAgentId: Dispatch<SetStateAction<string>>
 }
 
 export const useUiForms = (): { forms: UiForms; setForms: UiFormSetters } => {
@@ -73,6 +91,17 @@ export const useUiForms = (): { forms: UiForms; setForms: UiFormSetters } => {
   const [selectedDispId, setSelectedDispId] = useState('')
   const [taskTitle, setTaskTitle] = useState('')
   const [taskDuration, setTaskDuration] = useState('30')
+  const [aiAgentProvider, setAiAgentProvider] = useState('openai')
+  const [aiAgentModel, setAiAgentModel] = useState('gpt-5')
+  const [aiAllowedIntentsCsv, setAiAllowedIntentsCsv] = useState(
+    'CREATE_TASK,READ_TASKS_DUE_TOMORROW',
+  )
+  const [aiRequireApprovalForWrites, setAiRequireApprovalForWrites] = useState(true)
+  const [aiCredentialProvider, setAiCredentialProvider] = useState('openai')
+  const [aiCredentialRef, setAiCredentialRef] = useState('')
+  const [aiCredentialSecret, setAiCredentialSecret] = useState('')
+  const [aiChatMessage, setAiChatMessage] = useState('')
+  const [aiSelectedAgentId, setAiSelectedAgentId] = useState('')
 
   return {
     forms: {
@@ -98,6 +127,15 @@ export const useUiForms = (): { forms: UiForms; setForms: UiFormSetters } => {
       selectedDispId,
       taskTitle,
       taskDuration,
+      aiAgentProvider,
+      aiAgentModel,
+      aiAllowedIntentsCsv,
+      aiRequireApprovalForWrites,
+      aiCredentialProvider,
+      aiCredentialRef,
+      aiCredentialSecret,
+      aiChatMessage,
+      aiSelectedAgentId,
     },
     setForms: {
       setName,
@@ -122,6 +160,15 @@ export const useUiForms = (): { forms: UiForms; setForms: UiFormSetters } => {
       setSelectedDispId,
       setTaskTitle,
       setTaskDuration,
+      setAiAgentProvider,
+      setAiAgentModel,
+      setAiAllowedIntentsCsv,
+      setAiRequireApprovalForWrites,
+      setAiCredentialProvider,
+      setAiCredentialRef,
+      setAiCredentialSecret,
+      setAiChatMessage,
+      setAiSelectedAgentId,
     },
   }
 }
