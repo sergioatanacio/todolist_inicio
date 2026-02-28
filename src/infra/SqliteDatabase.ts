@@ -5,6 +5,12 @@ const STORE_DB = 'todo_sqlite'
 const STORE_NAME = 'files'
 const DB_FILE = 'index.db'
 
+const toArrayBuffer = (data: Uint8Array): ArrayBuffer => {
+  const buffer = new ArrayBuffer(data.byteLength)
+  new Uint8Array(buffer).set(data)
+  return buffer
+}
+
 const openIdb = () =>
   new Promise<IDBDatabase>((resolve, reject) => {
     const request = indexedDB.open(STORE_DB, 1)
@@ -166,11 +172,11 @@ export const initDatabase = async () => {
   } catch {
     // Ignorar si ya existe.
   }
-  await idbSet(DB_FILE, db.export().buffer)
+  await idbSet(DB_FILE, toArrayBuffer(db.export()))
   return db
 }
 
 export const persistDatabase = async (db: Database) => {
   const data = db.export()
-  await idbSet(DB_FILE, data.buffer)
+  await idbSet(DB_FILE, toArrayBuffer(data))
 }

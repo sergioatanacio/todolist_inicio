@@ -59,8 +59,14 @@ export class SqliteUserRepository implements UserRepository {
       user.createdAt,
     ])
     stmt.free()
-    const idRow = this.db.exec('SELECT last_insert_rowid() as id')
-    const id = Number(idRow[0].values[0][0])
+    const idResult = this.db.exec('SELECT last_insert_rowid() as id') as Array<{
+      values: unknown[][]
+    }>
+    const rawId = idResult[0]?.values[0]?.[0]
+    if (typeof rawId !== 'number' && typeof rawId !== 'string' && typeof rawId !== 'bigint') {
+      throw new Error('Could not obtain inserted user id')
+    }
+    const id = Number(rawId)
     void this.persist(this.db)
     return {
       id,
