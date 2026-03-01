@@ -3,22 +3,12 @@ import { AiUserCredentialAggregate } from '../../../dominio/entidades/AiUserCred
 import type { AiUserCredentialRepository } from '../../../dominio/puertos/AiUserCredentialRepository'
 import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
+import { AiCredentialAuthorizationPolicy } from '../../../dominio/servicios/AiCredentialAuthorizationPolicy'
 import { DomainEventPublisher } from '../../../dominio/servicios/DomainEventPublisher'
 import {
   type RegisterAiUserCredentialCommand,
   validateRegisterAiUserCredentialCommand,
 } from '../../commands/ai/RegisterAiUserCredentialCommand'
-
-const canManageCredential = (workspace: NonNullable<ReturnType<WorkspaceRepository['findById']>>, actorUserId: number, targetUserId: number) => {
-  if (actorUserId === targetUserId) return true
-  return workspace.hasPermission(actorUserId, 'workspace.members.manage')
-}
-
-const ensureActiveMember = (workspace: NonNullable<ReturnType<WorkspaceRepository['findById']>>, userId: number) => {
-  if (!workspace.members.some((member) => member.userId === userId && member.active)) {
-    throw domainError('FORBIDDEN', 'El usuario objetivo no es miembro activo del workspace')
-  }
-}
 
 export class RegisterAiUserCredentialUseCase {
   constructor(
@@ -33,11 +23,17 @@ export class RegisterAiUserCredentialUseCase {
     return this.unitOfWork.runInTransaction(async () => {
       const workspace = this.workspaceRepository.findById(input.workspaceId)
       if (!workspace) throw domainError('NOT_FOUND', 'Workspace no encontrado')
-      ensureActiveMember(workspace, input.userId)
-      ensureActiveMember(workspace, input.actorUserId)
-      if (!canManageCredential(workspace, input.actorUserId, input.userId)) {
-        throw domainError('FORBIDDEN', 'No tiene permisos para gestionar esta credencial')
-      }
+      AiCredentialAuthorizationPolicy.ensureActiveMember(workspace, input.userId)
+      AiCredentialAuthorizationPolicy.ensureActiveMember(
+        workspace,
+        input.actorUserId,
+        'El actor no es miembro activo del workspace',
+      )
+      AiCredentialAuthorizationPolicy.ensureCanManageCredential(
+        workspace,
+        input.actorUserId,
+        input.userId,
+      )
       const existing = this.credentialRepository.findByWorkspaceAndUser(
         input.workspaceId,
         input.userId,

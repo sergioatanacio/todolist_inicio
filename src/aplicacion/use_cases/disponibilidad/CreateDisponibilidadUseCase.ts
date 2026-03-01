@@ -4,8 +4,8 @@ import type { DisponibilidadRepository } from '../../../dominio/puertos/Disponib
 import type { ProjectRepository } from '../../../dominio/puertos/ProjectRepository'
 import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
-import { AuthorizationPolicy } from '../../../dominio/servicios/AuthorizationPolicy'
 import { DomainEventPublisher } from '../../../dominio/servicios/DomainEventPublisher'
+import { EditingAuthorizationPolicy } from '../../../dominio/servicios/EditingAuthorizationPolicy'
 import {
   type CreateDisponibilidadCommand,
   validateCreateDisponibilidadCommand,
@@ -31,16 +31,12 @@ export class CreateDisponibilidadUseCase {
       if (!workspace) {
         throw domainError('NOT_FOUND', 'Workspace no encontrado')
       }
-      if (
-        !AuthorizationPolicy.canInProject({
-          workspace,
-          project,
-          actorUserId: input.actorUserId,
-          permission: 'project.availability.create',
-        })
-      ) {
-        throw domainError('FORBIDDEN', 'No tienes permisos para crear disponibilidad')
-      }
+      EditingAuthorizationPolicy.ensureDisponibilidadEditable(
+        workspace,
+        project,
+        input.actorUserId,
+        'No tienes permisos para crear disponibilidad',
+      )
       const disponibilidad = DisponibilidadAggregate.create({
         projectId: input.projectId,
         name: input.name,

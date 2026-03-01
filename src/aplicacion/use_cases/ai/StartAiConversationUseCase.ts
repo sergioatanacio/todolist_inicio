@@ -5,6 +5,8 @@ import type { AiConversationRepository } from '../../../dominio/puertos/AiConver
 import type { ProjectRepository } from '../../../dominio/puertos/ProjectRepository'
 import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
+import { AiCredentialAuthorizationPolicy } from '../../../dominio/servicios/AiCredentialAuthorizationPolicy'
+import { ContextIntegrityPolicy } from '../../../dominio/servicios/ContextIntegrityPolicy'
 import { DomainEventPublisher } from '../../../dominio/servicios/DomainEventPublisher'
 import {
   type StartAiConversationCommand,
@@ -26,19 +28,24 @@ export class StartAiConversationUseCase {
     return this.unitOfWork.runInTransaction(async () => {
       const workspace = this.workspaceRepository.findById(input.workspaceId)
       if (!workspace) throw domainError('NOT_FOUND', 'Workspace no encontrado')
-      if (!workspace.members.some((member) => member.userId === input.actorUserId && member.active)) {
-        throw domainError('FORBIDDEN', 'El actor no pertenece al workspace')
-      }
+      AiCredentialAuthorizationPolicy.ensureActiveMember(
+        workspace,
+        input.actorUserId,
+        'El actor no pertenece al workspace',
+      )
       const agent = this.aiAgentRepository.findById(input.agentId)
       if (!agent) throw domainError('NOT_FOUND', 'Agente IA no encontrado')
-      if (agent.workspaceId !== workspace.id) {
-        throw domainError('CONFLICT', 'Agente fuera de contexto')
-      }
+      ContextIntegrityPolicy.ensureAgentInWorkspace(agent, workspace)
       if (input.projectId) {
         const project = this.projectRepository.findById(input.projectId)
-        if (!project || project.workspaceId !== workspace.id) {
+        if (!project) {
           throw domainError('NOT_FOUND', 'Proyecto no encontrado para la conversacion')
         }
+        ContextIntegrityPolicy.ensureProjectInWorkspace(
+          workspace,
+          project,
+          'Proyecto no encontrado para la conversacion',
+        )
       }
       const conversation = AiConversationAggregate.start({
         workspaceId: input.workspaceId,

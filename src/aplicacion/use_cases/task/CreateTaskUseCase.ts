@@ -6,6 +6,7 @@ import type { TodoListRepository } from '../../../dominio/puertos/TodoListReposi
 import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
 import { AuthorizationPolicy } from '../../../dominio/servicios/AuthorizationPolicy'
+import { ContextIntegrityPolicy } from '../../../dominio/servicios/ContextIntegrityPolicy'
 import {
   type CreateTaskCommand,
   validateCreateTaskCommand,
@@ -29,9 +30,16 @@ export class CreateTaskUseCase {
       if (!workspace || !project || !todoList) {
         throw domainError('NOT_FOUND', 'Contexto no encontrado')
       }
-      if (project.workspaceId !== workspace.id || todoList.projectId !== project.id) {
-        throw domainError('CONFLICT', 'Proyecto o lista fuera de contexto')
-      }
+      ContextIntegrityPolicy.ensureProjectInWorkspace(
+        workspace,
+        project,
+        'Proyecto o lista fuera de contexto',
+      )
+      ContextIntegrityPolicy.ensureTodoListInProject(
+        todoList,
+        project,
+        'Proyecto o lista fuera de contexto',
+      )
       if (
         !AuthorizationPolicy.canCreateTask({
           workspace,

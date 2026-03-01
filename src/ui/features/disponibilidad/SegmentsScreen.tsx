@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { DisponibilidadVm } from '../../types/AppUiModels'
+import { SegmentRulesService } from '../../../dominio/servicios/SegmentRulesService'
 
 type SegmentsScreenProps = {
   disponibilidadName: string
@@ -78,30 +79,21 @@ export function SegmentsScreen({
   const [editDaysWeek, setEditDaysWeek] = useState('')
   const [editDaysMonth, setEditDaysMonth] = useState('')
 
-  const parsedSpecificDates = segDates
-    .split(',')
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-  const parsedExclusions = segExclusions
-    .split(',')
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-  const parsedDaysOfWeek = segDaysWeek
-    .split(',')
-    .map((item) => Number(item.trim()))
-    .filter((item) => Number.isInteger(item))
-  const parsedDaysOfMonth = segDaysMonth
-    .split(',')
-    .map((item) => Number(item.trim()))
-    .filter((item) => Number.isInteger(item))
-  const conflictDates = parsedSpecificDates.filter((item) =>
-    parsedExclusions.includes(item),
-  )
-  const crossesMidnight = segStart.length > 0 && segEnd.length > 0 && segEnd < segStart
-  const hasRules =
-    parsedSpecificDates.length > 0 ||
-    parsedDaysOfWeek.length > 0 ||
-    parsedDaysOfMonth.length > 0
+  const analysis = SegmentRulesService.analyzeDraft({
+    startTime: segStart,
+    endTime: segEnd,
+    specificDatesRaw: segDates,
+    exclusionDatesRaw: segExclusions,
+    daysOfWeekRaw: segDaysWeek,
+    daysOfMonthRaw: segDaysMonth,
+  })
+  const parsedSpecificDates = analysis.specificDates
+  const parsedExclusions = analysis.exclusionDates
+  const parsedDaysOfWeek = analysis.daysOfWeek
+  const parsedDaysOfMonth = analysis.daysOfMonth
+  const conflictDates = analysis.conflictDates
+  const crossesMidnight = analysis.crossesMidnight
+  const hasRules = analysis.hasRules
   const weekdays = [
     { value: 1, label: 'Lun' },
     { value: 2, label: 'Mar' },

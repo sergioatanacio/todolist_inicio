@@ -8,6 +8,8 @@ import type { ProjectRepository } from '../../../dominio/puertos/ProjectReposito
 import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
 import { AuthorizationPolicy } from '../../../dominio/servicios/AuthorizationPolicy'
+import { AiCredentialAuthorizationPolicy } from '../../../dominio/servicios/AiCredentialAuthorizationPolicy'
+import { ContextIntegrityPolicy } from '../../../dominio/servicios/ContextIntegrityPolicy'
 import { DomainEventPublisher } from '../../../dominio/servicios/DomainEventPublisher'
 import { parseAiIntentType } from '../../../dominio/valores_objeto/AiIntentType'
 import {
@@ -42,15 +44,22 @@ export class SendAiChatMessageUseCase {
 
       const workspace = this.workspaceRepository.findById(conversation.workspaceId)
       if (!workspace) throw domainError('NOT_FOUND', 'Workspace no encontrado')
-      if (!workspace.members.some((member) => member.userId === input.actorUserId && member.active)) {
-        throw domainError('FORBIDDEN', 'El actor no pertenece al workspace')
-      }
+      AiCredentialAuthorizationPolicy.ensureActiveMember(
+        workspace,
+        input.actorUserId,
+        'El actor no pertenece al workspace',
+      )
 
       if (conversation.projectId) {
         const project = this.projectRepository.findById(conversation.projectId)
-        if (!project || project.workspaceId !== workspace.id) {
+        if (!project) {
           throw domainError('NOT_FOUND', 'Proyecto no encontrado en la conversacion')
         }
+        ContextIntegrityPolicy.ensureProjectInWorkspace(
+          workspace,
+          project,
+          'Proyecto no encontrado en la conversacion',
+        )
         const canViewProject = AuthorizationPolicy.canInProject({
           workspace,
           project,
@@ -64,9 +73,7 @@ export class SendAiChatMessageUseCase {
 
       const agent = this.aiAgentRepository.findById(conversation.agentId)
       if (!agent) throw domainError('NOT_FOUND', 'Agente IA no encontrado')
-      if (agent.workspaceId !== workspace.id) {
-        throw domainError('CONFLICT', 'Agente fuera de contexto')
-      }
+      ContextIntegrityPolicy.ensureAgentInWorkspace(agent, workspace)
       if (agent.state !== 'ACTIVE') {
         throw domainError('FORBIDDEN', 'El agente IA no esta activo')
       }

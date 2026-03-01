@@ -3,6 +3,7 @@ import type { ProjectRepository } from '../../../dominio/puertos/ProjectReposito
 import type { TaskRepository } from '../../../dominio/puertos/TaskRepository'
 import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
+import { ContextIntegrityPolicy } from '../../../dominio/servicios/ContextIntegrityPolicy'
 import { TaskWorkflowService } from '../../../dominio/servicios/TaskWorkflowService'
 import {
   type ToggleTaskDoneCommand,
@@ -27,9 +28,16 @@ export class ToggleTaskDoneUseCase {
       if (!workspace || !project || !task) {
         throw domainError('NOT_FOUND', 'Contexto o tarea no encontrada')
       }
-      if (project.workspaceId !== workspace.id || task.projectId !== project.id) {
-        throw domainError('CONFLICT', 'Tarea fuera de contexto de proyecto')
-      }
+      ContextIntegrityPolicy.ensureProjectInWorkspace(
+        workspace,
+        project,
+        'Tarea fuera de contexto de proyecto',
+      )
+      ContextIntegrityPolicy.ensureTaskInProject(
+        task,
+        project,
+        'Tarea fuera de contexto de proyecto',
+      )
       const updated = this.workflow.toggleDone(task, {
         workspace,
         project,

@@ -2,8 +2,9 @@ import { domainError } from '../../../dominio/errores/DomainError'
 import type { ProjectRepository } from '../../../dominio/puertos/ProjectRepository'
 import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
-import { AuthorizationPolicy } from '../../../dominio/servicios/AuthorizationPolicy'
+import { ContextIntegrityPolicy } from '../../../dominio/servicios/ContextIntegrityPolicy'
 import { DomainEventPublisher } from '../../../dominio/servicios/DomainEventPublisher'
+import { EditingAuthorizationPolicy } from '../../../dominio/servicios/EditingAuthorizationPolicy'
 import {
   type UpdateProjectCommand,
   validateUpdateProjectCommand,
@@ -29,16 +30,16 @@ export class UpdateProjectUseCase {
       if (!workspace) {
         throw domainError('NOT_FOUND', 'Workspace no encontrado')
       }
-      if (
-        !AuthorizationPolicy.canInProject({
-          workspace,
-          project,
-          actorUserId: input.actorUserId,
-          permission: 'project.access.manage',
-        })
-      ) {
-        throw domainError('FORBIDDEN', 'No tienes permisos para editar proyectos')
-      }
+      ContextIntegrityPolicy.ensureProjectInWorkspace(
+        workspace,
+        project,
+        'Proyecto no encontrado',
+      )
+      EditingAuthorizationPolicy.ensureProjectEditable(
+        workspace,
+        project,
+        input.actorUserId,
+      )
 
       const nextProject = project.rename(input.name).updateDescription(input.description)
       this.projectRepository.save(nextProject)

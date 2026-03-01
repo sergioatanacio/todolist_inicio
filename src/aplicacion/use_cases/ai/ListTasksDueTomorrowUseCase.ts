@@ -2,6 +2,7 @@ import { domainError } from '../../../dominio/errores/DomainError'
 import type { ProjectRepository } from '../../../dominio/puertos/ProjectRepository'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
 import { AuthorizationPolicy } from '../../../dominio/servicios/AuthorizationPolicy'
+import { ContextIntegrityPolicy } from '../../../dominio/servicios/ContextIntegrityPolicy'
 import type { TaskPlanningAppService } from '../../TaskPlanningAppService'
 import {
   type ListTasksDueTomorrowQuery,
@@ -35,9 +36,11 @@ export class ListTasksDueTomorrowUseCase {
     const workspace = this.workspaceRepository.findById(input.workspaceId)
     const project = this.projectRepository.findById(input.projectId)
     if (!workspace || !project) throw domainError('NOT_FOUND', 'Contexto no encontrado')
-    if (project.workspaceId !== workspace.id) {
-      throw domainError('CONFLICT', 'Proyecto fuera de workspace')
-    }
+    ContextIntegrityPolicy.ensureProjectInWorkspace(
+      workspace,
+      project,
+      'Proyecto fuera de workspace',
+    )
     if (
       !AuthorizationPolicy.canInProject({
         workspace,

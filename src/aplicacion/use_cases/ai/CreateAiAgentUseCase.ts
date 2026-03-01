@@ -2,6 +2,7 @@ import { domainError } from '../../../dominio/errores/DomainError'
 import type { AiAgentRepository } from '../../../dominio/puertos/AiAgentRepository'
 import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
+import { AiCredentialAuthorizationPolicy } from '../../../dominio/servicios/AiCredentialAuthorizationPolicy'
 import { DomainEventPublisher } from '../../../dominio/servicios/DomainEventPublisher'
 import { AiAgentAggregate } from '../../../dominio/entidades/AiAgentAggregate'
 import { parseAiIntentType } from '../../../dominio/valores_objeto/AiIntentType'
@@ -23,9 +24,11 @@ export class CreateAiAgentUseCase {
     return this.unitOfWork.runInTransaction(async () => {
       const workspace = this.workspaceRepository.findById(input.workspaceId)
       if (!workspace) throw domainError('NOT_FOUND', 'Workspace no encontrado')
-      if (!workspace.members.some((member) => member.userId === input.actorUserId && member.active)) {
-        throw domainError('FORBIDDEN', 'El actor no pertenece al workspace')
-      }
+      AiCredentialAuthorizationPolicy.ensureActiveMember(
+        workspace,
+        input.actorUserId,
+        'El actor no pertenece al workspace',
+      )
       const agent = AiAgentAggregate.create({
         workspaceId: input.workspaceId,
         createdByUserId: input.actorUserId,

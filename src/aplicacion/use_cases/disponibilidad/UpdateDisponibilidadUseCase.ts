@@ -3,8 +3,9 @@ import type { DisponibilidadRepository } from '../../../dominio/puertos/Disponib
 import type { ProjectRepository } from '../../../dominio/puertos/ProjectRepository'
 import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
-import { AuthorizationPolicy } from '../../../dominio/servicios/AuthorizationPolicy'
+import { ContextIntegrityPolicy } from '../../../dominio/servicios/ContextIntegrityPolicy'
 import { DomainEventPublisher } from '../../../dominio/servicios/DomainEventPublisher'
+import { EditingAuthorizationPolicy } from '../../../dominio/servicios/EditingAuthorizationPolicy'
 import {
   type UpdateDisponibilidadCommand,
   validateUpdateDisponibilidadCommand,
@@ -30,19 +31,11 @@ export class UpdateDisponibilidadUseCase {
       if (!workspace) {
         throw domainError('NOT_FOUND', 'Workspace no encontrado')
       }
-      if (
-        !AuthorizationPolicy.canInProject({
-          workspace,
-          project,
-          actorUserId: input.actorUserId,
-          permission: 'project.availability.create',
-        })
-      ) {
-        throw domainError(
-          'FORBIDDEN',
-          'No tienes permisos para modificar disponibilidades',
-        )
-      }
+      EditingAuthorizationPolicy.ensureDisponibilidadEditable(
+        workspace,
+        project,
+        input.actorUserId,
+      )
 
       const disponibilidad = this.disponibilidadRepository.findById(
         input.disponibilidadId,
@@ -50,12 +43,11 @@ export class UpdateDisponibilidadUseCase {
       if (!disponibilidad) {
         throw domainError('NOT_FOUND', 'Disponibilidad no encontrada')
       }
-      if (disponibilidad.projectId !== project.id) {
-        throw domainError(
-          'CONFLICT',
-          'La disponibilidad no pertenece al proyecto actual',
-        )
-      }
+      ContextIntegrityPolicy.ensureDisponibilidadInProject(
+        disponibilidad,
+        project,
+        'La disponibilidad no pertenece al proyecto actual',
+      )
 
       const nextDisponibilidad = disponibilidad
         .rename(input.name)

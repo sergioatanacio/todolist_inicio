@@ -4,7 +4,8 @@ import type { ProjectRepository } from '../../../dominio/puertos/ProjectReposito
 import type { TodoListRepository } from '../../../dominio/puertos/TodoListRepository'
 import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
-import { AuthorizationPolicy } from '../../../dominio/servicios/AuthorizationPolicy'
+import { ContextIntegrityPolicy } from '../../../dominio/servicios/ContextIntegrityPolicy'
+import { EditingAuthorizationPolicy } from '../../../dominio/servicios/EditingAuthorizationPolicy'
 import {
   type ReassignTodoListDisponibilidadCommand,
   validateReassignTodoListDisponibilidadCommand,
@@ -31,23 +32,26 @@ export class ReassignTodoListDisponibilidadUseCase {
       if (!workspace || !project || !todoList || !disponibilidad) {
         throw domainError('NOT_FOUND', 'Entidad no encontrada')
       }
-      if (
-        project.workspaceId !== workspace.id ||
-        todoList.projectId !== project.id ||
-        disponibilidad.projectId !== project.id
-      ) {
-        throw domainError('CONFLICT', 'Contexto inconsistente para reasignar lista')
-      }
-      if (
-        !AuthorizationPolicy.canInProject({
-          workspace,
-          project,
-          actorUserId: input.actorUserId,
-          permission: 'project.todolists.create',
-        })
-      ) {
-        throw domainError('FORBIDDEN', 'No tienes permisos para editar listas')
-      }
+      ContextIntegrityPolicy.ensureProjectInWorkspace(
+        workspace,
+        project,
+        'Contexto inconsistente para reasignar lista',
+      )
+      ContextIntegrityPolicy.ensureTodoListInProject(
+        todoList,
+        project,
+        'Contexto inconsistente para reasignar lista',
+      )
+      ContextIntegrityPolicy.ensureDisponibilidadInProject(
+        disponibilidad,
+        project,
+        'Contexto inconsistente para reasignar lista',
+      )
+      EditingAuthorizationPolicy.ensureTodoListEditable(
+        workspace,
+        project,
+        input.actorUserId,
+      )
       const inDisponibilidad = this.todoListRepository
         .findByProjectId(project.id)
         .filter((item) => item.disponibilidadId === disponibilidad.id)

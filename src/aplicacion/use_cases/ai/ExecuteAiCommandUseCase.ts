@@ -7,6 +7,8 @@ import type { ProjectRepository } from '../../../dominio/puertos/ProjectReposito
 import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
 import { AiAuthorizationPolicy } from '../../../dominio/servicios/AiAuthorizationPolicy'
+import { AiCredentialAuthorizationPolicy } from '../../../dominio/servicios/AiCredentialAuthorizationPolicy'
+import { ContextIntegrityPolicy } from '../../../dominio/servicios/ContextIntegrityPolicy'
 import { DomainEventPublisher } from '../../../dominio/servicios/DomainEventPublisher'
 import type { TaskStatus } from '../../../dominio/valores_objeto/TaskStatus'
 import type { DisponibilidadAppService } from '../../DisponibilidadAppService'
@@ -90,6 +92,18 @@ export class ExecuteAiCommandUseCase {
       const project = conversation.projectId
         ? this.projectRepository.findById(conversation.projectId)
         : null
+      if (project) {
+        ContextIntegrityPolicy.ensureProjectInWorkspace(
+          workspace,
+          project,
+          'Proyecto fuera de workspace',
+        )
+      }
+      AiCredentialAuthorizationPolicy.ensureActiveMember(
+        workspace,
+        input.actorUserId,
+        'El actor no pertenece al workspace',
+      )
 
       if (
         !AiAuthorizationPolicy.canExecute({

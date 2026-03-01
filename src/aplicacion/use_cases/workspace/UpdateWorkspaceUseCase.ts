@@ -1,8 +1,8 @@
 import { domainError } from '../../../dominio/errores/DomainError'
 import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
-import { AuthorizationPolicy } from '../../../dominio/servicios/AuthorizationPolicy'
 import { DomainEventPublisher } from '../../../dominio/servicios/DomainEventPublisher'
+import { EditingAuthorizationPolicy } from '../../../dominio/servicios/EditingAuthorizationPolicy'
 import {
   type UpdateWorkspaceCommand,
   validateUpdateWorkspaceCommand,
@@ -22,15 +22,10 @@ export class UpdateWorkspaceUseCase {
       if (!workspace) {
         throw domainError('NOT_FOUND', 'Workspace no encontrado')
       }
-      if (
-        !AuthorizationPolicy.canInWorkspace(
-          workspace,
-          input.actorUserId,
-          'workspace.members.manage',
-        )
-      ) {
-        throw domainError('FORBIDDEN', 'No tienes permisos para editar el workspace')
-      }
+      EditingAuthorizationPolicy.ensureWorkspaceEditable(
+        workspace,
+        input.actorUserId,
+      )
 
       const nextWorkspace = workspace.rename(input.name)
       this.workspaceRepository.save(nextWorkspace)

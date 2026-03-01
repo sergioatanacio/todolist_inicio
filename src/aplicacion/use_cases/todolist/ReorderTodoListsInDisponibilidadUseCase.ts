@@ -3,7 +3,8 @@ import type { ProjectRepository } from '../../../dominio/puertos/ProjectReposito
 import type { TodoListRepository } from '../../../dominio/puertos/TodoListRepository'
 import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
-import { AuthorizationPolicy } from '../../../dominio/servicios/AuthorizationPolicy'
+import { ContextIntegrityPolicy } from '../../../dominio/servicios/ContextIntegrityPolicy'
+import { EditingAuthorizationPolicy } from '../../../dominio/servicios/EditingAuthorizationPolicy'
 import {
   type ReorderTodoListsInDisponibilidadCommand,
   validateReorderTodoListsInDisponibilidadCommand,
@@ -25,19 +26,17 @@ export class ReorderTodoListsInDisponibilidadUseCase {
       if (!workspace || !project) {
         throw domainError('NOT_FOUND', 'Workspace o proyecto no encontrado')
       }
-      if (project.workspaceId !== workspace.id) {
-        throw domainError('CONFLICT', 'Proyecto no pertenece al workspace')
-      }
-      if (
-        !AuthorizationPolicy.canInProject({
-          workspace,
-          project,
-          actorUserId: input.actorUserId,
-          permission: 'project.todolists.create',
-        })
-      ) {
-        throw domainError('FORBIDDEN', 'No tienes permisos para ordenar listas')
-      }
+      ContextIntegrityPolicy.ensureProjectInWorkspace(
+        workspace,
+        project,
+        'Proyecto no pertenece al workspace',
+      )
+      EditingAuthorizationPolicy.ensureTodoListEditable(
+        workspace,
+        project,
+        input.actorUserId,
+        'No tienes permisos para ordenar listas',
+      )
       const lists = this.todoListRepository
         .findByProjectId(project.id)
         .filter((item) => item.disponibilidadId === input.disponibilidadId)

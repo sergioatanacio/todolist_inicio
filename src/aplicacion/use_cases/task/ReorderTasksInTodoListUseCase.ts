@@ -5,6 +5,7 @@ import type { TodoListRepository } from '../../../dominio/puertos/TodoListReposi
 import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
 import { AuthorizationPolicy } from '../../../dominio/servicios/AuthorizationPolicy'
+import { ContextIntegrityPolicy } from '../../../dominio/servicios/ContextIntegrityPolicy'
 import {
   type ReorderTasksInTodoListCommand,
   validateReorderTasksInTodoListCommand,
@@ -28,9 +29,16 @@ export class ReorderTasksInTodoListUseCase {
       if (!workspace || !project || !todoList) {
         throw domainError('NOT_FOUND', 'Contexto no encontrado')
       }
-      if (project.workspaceId !== workspace.id || todoList.projectId !== project.id) {
-        throw domainError('CONFLICT', 'Contexto inconsistente para reordenar tareas')
-      }
+      ContextIntegrityPolicy.ensureProjectInWorkspace(
+        workspace,
+        project,
+        'Contexto inconsistente para reordenar tareas',
+      )
+      ContextIntegrityPolicy.ensureTodoListInProject(
+        todoList,
+        project,
+        'Contexto inconsistente para reordenar tareas',
+      )
       if (
         !AuthorizationPolicy.canInProject({
           workspace,
