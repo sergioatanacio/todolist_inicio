@@ -10,6 +10,7 @@ import type { ChangeTaskStatusCommand } from './commands/task/ChangeTaskStatusCo
 import type { CreateTaskCommand } from './commands/task/CreateTaskCommand'
 import type { ReorderTasksInTodoListCommand } from './commands/task/ReorderTasksInTodoListCommand'
 import type { ToggleTaskDoneCommand } from './commands/task/ToggleTaskDoneCommand'
+import type { UpdateTaskCommand } from './commands/task/UpdateTaskCommand'
 import { BuildDisponibilidadCalendarUseCase } from './use_cases/planning/BuildDisponibilidadCalendarUseCase'
 import { BuildProjectCalendarUseCase } from './use_cases/planning/BuildProjectCalendarUseCase'
 import { ChangeTaskStatusUseCase } from './use_cases/task/ChangeTaskStatusUseCase'
@@ -17,6 +18,7 @@ import { CreateTaskUseCase } from './use_cases/task/CreateTaskUseCase'
 import { GetKanbanByTodoListUseCase } from './use_cases/task/GetKanbanByTodoListUseCase'
 import { ReorderTasksInTodoListUseCase } from './use_cases/task/ReorderTasksInTodoListUseCase'
 import { ToggleTaskDoneUseCase } from './use_cases/task/ToggleTaskDoneUseCase'
+import { UpdateTaskUseCase } from './use_cases/task/UpdateTaskUseCase'
 
 export class TaskPlanningAppService {
   private readonly buildDisponibilidadCalendarUseCase: BuildDisponibilidadCalendarUseCase
@@ -24,6 +26,7 @@ export class TaskPlanningAppService {
   private readonly getKanbanByTodoListUseCase: GetKanbanByTodoListUseCase
   private readonly reorderTasksInTodoListUseCase: ReorderTasksInTodoListUseCase
   private readonly createTaskUseCase: CreateTaskUseCase
+  private readonly updateTaskUseCase: UpdateTaskUseCase
   private readonly changeTaskStatusUseCase: ChangeTaskStatusUseCase
   private readonly toggleTaskDoneUseCase: ToggleTaskDoneUseCase
 
@@ -65,6 +68,13 @@ export class TaskPlanningAppService {
       workspaceRepository,
       unitOfWork,
     )
+    this.updateTaskUseCase = new UpdateTaskUseCase(
+      taskRepository,
+      projectRepository,
+      workspaceRepository,
+      unitOfWork,
+      workflow,
+    )
     this.changeTaskStatusUseCase = new ChangeTaskStatusUseCase(
       taskRepository,
       projectRepository,
@@ -103,6 +113,10 @@ export class TaskPlanningAppService {
 
   createTask(command: CreateTaskCommand) {
     return this.createTaskUseCase.execute(command)
+  }
+
+  updateTask(command: UpdateTaskCommand) {
+    return this.updateTaskUseCase.execute(command)
   }
 
   changeTaskStatus(command: ChangeTaskStatusCommand) {

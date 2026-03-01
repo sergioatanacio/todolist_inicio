@@ -105,6 +105,25 @@ export class TaskWorkflowService {
     return task.changeDuration(context.actorUserId, durationMinutes)
   }
 
+  updateTask(
+    task: TaskAggregate,
+    data: { title: string; durationMinutes: number },
+    context: WorkflowContext,
+  ) {
+    if (
+      !AuthorizationPolicy.canUpdateTask({
+        workspace: context.workspace,
+        project: context.project,
+        actorUserId: context.actorUserId,
+      })
+    ) {
+      throw domainError('FORBIDDEN', 'El actor no puede actualizar la tarea')
+    }
+    return task
+      .rename(data.title)
+      .changeDuration(context.actorUserId, data.durationMinutes)
+  }
+
   schedule(
     task: TaskAggregate,
     scheduledStart: number,

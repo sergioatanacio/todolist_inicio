@@ -356,6 +356,7 @@ function App() {
           onTaskTitleChange={setForms.setTaskTitle}
           onTaskDurationChange={setForms.setTaskDuration}
           onCreateTask={() => void actions.createTask()}
+          onUpdateTask={(taskId, data) => void actions.updateTask(taskId, data)}
           busy={state.busy}
           error={state.errors.task}
           kanban={state.kanban}
