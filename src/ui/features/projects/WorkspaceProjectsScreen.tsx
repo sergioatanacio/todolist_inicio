@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { ProjectVm } from '../../types/AppUiModels'
 
 type WorkspaceProjectsScreenProps = {
@@ -6,6 +7,7 @@ type WorkspaceProjectsScreenProps = {
   onProjectNameChange: (value: string) => void
   onProjectDescriptionChange: (value: string) => void
   onCreateProject: () => void
+  onUpdateProject: (projectId: string, name: string, description: string) => void
   busy: boolean
   error: string | null
   projects: ProjectVm[]
@@ -18,11 +20,16 @@ export function WorkspaceProjectsScreen({
   onProjectNameChange,
   onProjectDescriptionChange,
   onCreateProject,
+  onUpdateProject,
   busy,
   error,
   projects,
   onOpenProject,
 }: WorkspaceProjectsScreenProps) {
+  const [editingProjectId, setEditingProjectId] = useState<string | null>(null)
+  const [editingProjectName, setEditingProjectName] = useState('')
+  const [editingProjectDescription, setEditingProjectDescription] = useState('')
+
   return (
     <section className="rounded-2xl border border-slate-300 bg-white p-4">
       <h1 className="text-lg font-semibold">Proyectos</h1>
@@ -52,14 +59,73 @@ export function WorkspaceProjectsScreen({
 
       <div className="mt-3 space-y-2">
         {projects.map((project) => (
-          <button
-            key={project.id}
-            type="button"
-            onClick={() => onOpenProject(project.workspaceId, project.id)}
-            className="block w-full rounded border border-slate-300 px-3 py-2 text-left text-sm"
-          >
-            {project.name}
-          </button>
+          <div key={project.id} className="rounded border border-slate-300 px-3 py-2 text-sm">
+            {editingProjectId === project.id ? (
+              <div className="space-y-2">
+                <input
+                  value={editingProjectName}
+                  onChange={(event) => setEditingProjectName(event.target.value)}
+                  className="w-full rounded border border-slate-300 px-2 py-1 text-sm"
+                />
+                <input
+                  value={editingProjectDescription}
+                  onChange={(event) => setEditingProjectDescription(event.target.value)}
+                  className="w-full rounded border border-slate-300 px-2 py-1 text-sm"
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onUpdateProject(
+                        project.id,
+                        editingProjectName,
+                        editingProjectDescription,
+                      )
+                      setEditingProjectId(null)
+                      setEditingProjectName('')
+                      setEditingProjectDescription('')
+                    }}
+                    disabled={busy}
+                    className="rounded border border-slate-300 px-2 py-1 text-xs"
+                  >
+                    Guardar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingProjectId(null)
+                      setEditingProjectName('')
+                      setEditingProjectDescription('')
+                    }}
+                    className="rounded border border-slate-300 px-2 py-1 text-xs"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => onOpenProject(project.workspaceId, project.id)}
+                  className="text-left"
+                >
+                  {project.name}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingProjectId(project.id)
+                    setEditingProjectName(project.name)
+                    setEditingProjectDescription(project.description)
+                  }}
+                  className="rounded border border-slate-300 px-2 py-1 text-xs"
+                >
+                  Editar
+                </button>
+              </div>
+            )}
+          </div>
         ))}
       </div>
     </section>

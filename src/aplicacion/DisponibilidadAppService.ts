@@ -6,13 +6,19 @@ import type { WorkspaceRepository } from '../dominio/puertos/WorkspaceRepository
 import { DomainEventPublisher } from '../dominio/servicios/DomainEventPublisher'
 import type { AddSegmentoTiempoCommand } from './commands/disponibilidad/AddSegmentoTiempoCommand'
 import type { CreateDisponibilidadCommand } from './commands/disponibilidad/CreateDisponibilidadCommand'
+import type { UpdateSegmentoTiempoCommand } from './commands/disponibilidad/UpdateSegmentoTiempoCommand'
+import type { UpdateDisponibilidadCommand } from './commands/disponibilidad/UpdateDisponibilidadCommand'
 import { AddSegmentoTiempoUseCase } from './use_cases/disponibilidad/AddSegmentoTiempoUseCase'
 import { CreateDisponibilidadUseCase } from './use_cases/disponibilidad/CreateDisponibilidadUseCase'
 import { ListDisponibilidadesByWorkspaceUseCase } from './use_cases/disponibilidad/ListDisponibilidadesByWorkspaceUseCase'
+import { UpdateSegmentoTiempoUseCase } from './use_cases/disponibilidad/UpdateSegmentoTiempoUseCase'
+import { UpdateDisponibilidadUseCase } from './use_cases/disponibilidad/UpdateDisponibilidadUseCase'
 
 export class DisponibilidadAppService {
   private readonly addSegmentoTiempoUseCase: AddSegmentoTiempoUseCase
+  private readonly updateSegmentoTiempoUseCase: UpdateSegmentoTiempoUseCase
   private readonly createDisponibilidadUseCase: CreateDisponibilidadUseCase
+  private readonly updateDisponibilidadUseCase: UpdateDisponibilidadUseCase
   private readonly listDisponibilidadesByWorkspaceUseCase: ListDisponibilidadesByWorkspaceUseCase
 
   constructor(
@@ -30,7 +36,21 @@ export class DisponibilidadAppService {
       unitOfWork,
       eventPublisher,
     )
+    this.updateSegmentoTiempoUseCase = new UpdateSegmentoTiempoUseCase(
+      disponibilidadRepository,
+      projectRepository,
+      workspaceRepository,
+      unitOfWork,
+      eventPublisher,
+    )
     this.createDisponibilidadUseCase = new CreateDisponibilidadUseCase(
+      disponibilidadRepository,
+      projectRepository,
+      workspaceRepository,
+      unitOfWork,
+      eventPublisher,
+    )
+    this.updateDisponibilidadUseCase = new UpdateDisponibilidadUseCase(
       disponibilidadRepository,
       projectRepository,
       workspaceRepository,
@@ -45,8 +65,16 @@ export class DisponibilidadAppService {
     return this.createDisponibilidadUseCase.execute(command)
   }
 
+  update(command: UpdateDisponibilidadCommand) {
+    return this.updateDisponibilidadUseCase.execute(command)
+  }
+
   addSegment(command: AddSegmentoTiempoCommand) {
     return this.addSegmentoTiempoUseCase.execute(command)
+  }
+
+  updateSegment(command: UpdateSegmentoTiempoCommand) {
+    return this.updateSegmentoTiempoUseCase.execute(command)
   }
 
   listByProject(projectId: string) {

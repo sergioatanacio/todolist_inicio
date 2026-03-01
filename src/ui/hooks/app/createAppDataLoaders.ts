@@ -45,6 +45,7 @@ export const createAppDataLoaders = (deps: LoaderDependencies) => {
       id: item.id,
       projectId: item.projectId,
       name: item.name,
+      description: item.description,
       startDate: item.startDate,
       endDate: item.endDate,
       remainingUsableMinutes: item.calcularMinutosValidosDesde(nowMs),
@@ -70,6 +71,7 @@ export const createAppDataLoaders = (deps: LoaderDependencies) => {
       projectId: list.projectId,
       disponibilidadId: list.disponibilidadId,
       name: list.name,
+      description: list.description,
     }))
     deps.setLists(lists)
   }

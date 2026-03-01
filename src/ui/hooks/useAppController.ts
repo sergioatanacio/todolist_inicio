@@ -32,10 +32,39 @@ export type AppController = {
     submitAuth: () => Promise<void>
     logout: () => void
     createWorkspace: () => Promise<void>
+    updateWorkspace: (workspaceId: string, name: string) => Promise<void>
     createProject: () => Promise<void>
+    updateProject: (
+      projectId: string,
+      name: string,
+      description: string,
+    ) => Promise<void>
     createDisponibilidad: () => Promise<void>
+    updateSegment: (
+      segmentId: string,
+      data: {
+        name: string
+        description: string
+        startTime: string
+        endTime: string
+        specificDates: string
+        exclusionDates: string
+        daysOfWeek: string
+        daysOfMonth: string
+      },
+    ) => Promise<void>
+    updateDisponibilidad: (
+      disponibilidadId: string,
+      data: {
+        name: string
+        description: string
+        startDate: string
+        endDate: string
+      },
+    ) => Promise<void>
     addSegment: () => Promise<void>
     createList: () => Promise<void>
+    updateList: (todoListId: string, data: { name: string; description: string }) => Promise<void>
     createTask: () => Promise<void>
     changeStatus: (taskId: string, toStatus: TaskStatus) => Promise<void>
     createAiAgent: () => Promise<void>
@@ -278,6 +307,56 @@ export const useAppController = (): AppController => {
     }
   }
 
+  const updateWorkspace = async (workspaceId: string, name: string) => {
+    const services = servicesRef.current
+    if (!services || userId === null) return
+    setBusy(true)
+    setError('workspace', null)
+    try {
+      await services.workspace.updateWorkspace({
+        workspaceId,
+        actorUserId: userId,
+        name,
+      })
+      loaders.loadWorkspaces(services, userId)
+    } catch (error) {
+      setError(
+        'workspace',
+        error instanceof Error ? error.message : 'No se pudo editar workspace.',
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const updateProject = async (
+    projectId: string,
+    name: string,
+    description: string,
+  ) => {
+    const services = servicesRef.current
+    if (!services || userId === null || !context.workspaceId) return
+    setBusy(true)
+    setError('project', null)
+    try {
+      await services.project.updateProject({
+        workspaceId: context.workspaceId,
+        projectId,
+        actorUserId: userId,
+        name,
+        description,
+      })
+      loaders.loadWorkspaceContext(services, context.workspaceId, userId)
+    } catch (error) {
+      setError(
+        'project',
+        error instanceof Error ? error.message : 'No se pudo editar proyecto.',
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const createDisponibilidad = async () => {
     const services = servicesRef.current
     if (!services || userId === null || !context.projectId) return
@@ -301,6 +380,37 @@ export const useAppController = (): AppController => {
       setError(
         'disponibilidad',
         error instanceof Error ? error.message : 'No se pudo crear disponibilidad.',
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const updateDisponibilidad = async (
+    disponibilidadId: string,
+    data: {
+      name: string
+      description: string
+      startDate: string
+      endDate: string
+    },
+  ) => {
+    const services = servicesRef.current
+    if (!services || userId === null || !context.projectId) return
+    setBusy(true)
+    setError('disponibilidad', null)
+    try {
+      await services.disponibilidad.update({
+        projectId: context.projectId,
+        disponibilidadId,
+        actorUserId: userId,
+        ...data,
+      })
+      loaders.loadProjectContext(services, context.projectId)
+    } catch (error) {
+      setError(
+        'disponibilidad',
+        error instanceof Error ? error.message : 'No se pudo editar disponibilidad.',
       )
     } finally {
       setBusy(false)
@@ -343,6 +453,47 @@ export const useAppController = (): AppController => {
     }
   }
 
+  const updateSegment = async (
+    segmentId: string,
+    data: {
+      name: string
+      description: string
+      startTime: string
+      endTime: string
+      specificDates: string
+      exclusionDates: string
+      daysOfWeek: string
+      daysOfMonth: string
+    },
+  ) => {
+    const services = servicesRef.current
+    const targetDisponibilidadId = context.disponibilidadId ?? forms.selectedDispId
+    if (!services || userId === null || !context.projectId || !targetDisponibilidadId) return
+    setBusy(true)
+    setError('segment', null)
+    try {
+      await services.disponibilidad.updateSegment({
+        projectId: context.projectId,
+        disponibilidadId: targetDisponibilidadId,
+        segmentId,
+        actorUserId: userId,
+        name: data.name,
+        description: data.description,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        specificDates: parseCsvDates(data.specificDates),
+        exclusionDates: parseCsvDates(data.exclusionDates),
+        daysOfWeek: parseCsvNumbers(data.daysOfWeek),
+        daysOfMonth: parseCsvNumbers(data.daysOfMonth),
+      })
+      loaders.loadProjectContext(services, context.projectId)
+    } catch (error) {
+      setError('segment', error instanceof Error ? error.message : 'No se pudo editar segmento.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const createList = async () => {
     const services = servicesRef.current
     if (
@@ -369,6 +520,33 @@ export const useAppController = (): AppController => {
       loaders.loadProjectContext(services, context.projectId)
     } catch (error) {
       setError('list', error instanceof Error ? error.message : 'No se pudo crear lista.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const updateList = async (
+    todoListId: string,
+    data: { name: string; description: string },
+  ) => {
+    const services = servicesRef.current
+    if (!services || userId === null || !context.workspaceId || !context.projectId) {
+      return
+    }
+    setBusy(true)
+    setError('list', null)
+    try {
+      await services.todoList.update({
+        workspaceId: context.workspaceId,
+        projectId: context.projectId,
+        todoListId,
+        actorUserId: userId,
+        name: data.name,
+        description: data.description,
+      })
+      loaders.loadProjectContext(services, context.projectId)
+    } catch (error) {
+      setError('list', error instanceof Error ? error.message : 'No se pudo editar lista.')
     } finally {
       setBusy(false)
     }
@@ -723,10 +901,15 @@ export const useAppController = (): AppController => {
       submitAuth,
       logout,
       createWorkspace,
+      updateWorkspace,
       createProject,
+      updateProject,
       createDisponibilidad,
+      updateSegment,
+      updateDisponibilidad,
       addSegment,
       createList,
+      updateList,
       createTask,
       changeStatus,
       createAiAgent,

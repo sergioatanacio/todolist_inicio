@@ -6,14 +6,17 @@ import { AssignWorkspaceRoleUseCase } from './use_cases/workspace/AssignWorkspac
 import { CreateWorkspaceUseCase } from './use_cases/workspace/CreateWorkspaceUseCase'
 import { InviteWorkspaceMemberUseCase } from './use_cases/workspace/InviteWorkspaceMemberUseCase'
 import { TransferWorkspaceOwnershipUseCase } from './use_cases/workspace/TransferWorkspaceOwnershipUseCase'
+import { UpdateWorkspaceUseCase } from './use_cases/workspace/UpdateWorkspaceUseCase'
 import type { CreateWorkspaceCommand } from './commands/workspace/CreateWorkspaceCommand'
 import type { InviteWorkspaceMemberCommand } from './commands/workspace/InviteWorkspaceMemberCommand'
 import type { AssignWorkspaceRoleCommand } from './commands/workspace/AssignWorkspaceRoleCommand'
 import type { TransferWorkspaceOwnershipCommand } from './commands/workspace/TransferWorkspaceOwnershipCommand'
+import type { UpdateWorkspaceCommand } from './commands/workspace/UpdateWorkspaceCommand'
 
 export class WorkspaceAppService {
   private readonly workspaceRepository: WorkspaceRepository
   private readonly createWorkspaceUseCase: CreateWorkspaceUseCase
+  private readonly updateWorkspaceUseCase: UpdateWorkspaceUseCase
   private readonly inviteWorkspaceMemberUseCase: InviteWorkspaceMemberUseCase
   private readonly assignWorkspaceRoleUseCase: AssignWorkspaceRoleUseCase
   private readonly transferWorkspaceOwnershipUseCase: TransferWorkspaceOwnershipUseCase
@@ -26,6 +29,11 @@ export class WorkspaceAppService {
     this.workspaceRepository = workspaceRepository
     const eventPublisher = new DomainEventPublisher(eventBus)
     this.createWorkspaceUseCase = new CreateWorkspaceUseCase(
+      workspaceRepository,
+      unitOfWork,
+      eventPublisher,
+    )
+    this.updateWorkspaceUseCase = new UpdateWorkspaceUseCase(
       workspaceRepository,
       unitOfWork,
       eventPublisher,
@@ -50,6 +58,10 @@ export class WorkspaceAppService {
 
   createWorkspace(command: CreateWorkspaceCommand) {
     return this.createWorkspaceUseCase.execute(command)
+  }
+
+  updateWorkspace(command: UpdateWorkspaceCommand) {
+    return this.updateWorkspaceUseCase.execute(command)
   }
 
   inviteMember(command: InviteWorkspaceMemberCommand) {

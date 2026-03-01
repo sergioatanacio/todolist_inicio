@@ -23,6 +23,19 @@ type SegmentsScreenProps = {
   onSegDaysMonthChange: (value: string) => void
   onSegExclusionsChange: (value: string) => void
   onAddSegment: () => void
+  onUpdateSegment: (
+    segmentId: string,
+    data: {
+      name: string
+      description: string
+      startTime: string
+      endTime: string
+      specificDates: string
+      exclusionDates: string
+      daysOfWeek: string
+      daysOfMonth: string
+    },
+  ) => void
   busy: boolean
   error: string | null
 }
@@ -49,11 +62,21 @@ export function SegmentsScreen({
   onSegDaysMonthChange,
   onSegExclusionsChange,
   onAddSegment,
+  onUpdateSegment,
   busy,
   error,
 }: SegmentsScreenProps) {
   const [specificDateInput, setSpecificDateInput] = useState('')
   const [exclusionDateInput, setExclusionDateInput] = useState('')
+  const [editingSegmentId, setEditingSegmentId] = useState<string | null>(null)
+  const [editName, setEditName] = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  const [editStart, setEditStart] = useState('')
+  const [editEnd, setEditEnd] = useState('')
+  const [editDates, setEditDates] = useState('')
+  const [editExclusions, setEditExclusions] = useState('')
+  const [editDaysWeek, setEditDaysWeek] = useState('')
+  const [editDaysMonth, setEditDaysMonth] = useState('')
 
   const parsedSpecificDates = segDates
     .split(',')
@@ -149,16 +172,119 @@ export function SegmentsScreen({
             ) : (
               segments.map((segment) => (
                 <div key={segment.id} className="rounded-lg border border-slate-300 bg-white p-2">
-                  <p className="text-xs font-semibold">{segment.name}</p>
-                  <p className="text-[11px] text-slate-600">
-                    {segment.startTime} - {segment.endTime}
-                  </p>
-                  <p className="text-[11px] text-slate-600">
-                    reglas: {segment.specificDates.length + segment.daysOfWeek.length + segment.daysOfMonth.length}
-                  </p>
-                  <p className="text-[11px] text-slate-600">
-                    exclusiones: {segment.exclusionDates.length}
-                  </p>
+                  {editingSegmentId === segment.id ? (
+                    <div className="space-y-2">
+                      <input
+                        value={editName}
+                        onChange={(event) => setEditName(event.target.value)}
+                        placeholder="Nombre"
+                        className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
+                      />
+                      <input
+                        value={editDescription}
+                        onChange={(event) => setEditDescription(event.target.value)}
+                        placeholder="Descripcion"
+                        className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
+                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        <input
+                          type="time"
+                          value={editStart}
+                          onChange={(event) => setEditStart(event.target.value)}
+                          className="rounded border border-slate-300 px-2 py-1 text-xs"
+                        />
+                        <input
+                          type="time"
+                          value={editEnd}
+                          onChange={(event) => setEditEnd(event.target.value)}
+                          className="rounded border border-slate-300 px-2 py-1 text-xs"
+                        />
+                      </div>
+                      <input
+                        value={editDates}
+                        onChange={(event) => setEditDates(event.target.value)}
+                        placeholder="Fechas CSV (YYYY-MM-DD)"
+                        className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
+                      />
+                      <input
+                        value={editExclusions}
+                        onChange={(event) => setEditExclusions(event.target.value)}
+                        placeholder="Exclusiones CSV"
+                        className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
+                      />
+                      <input
+                        value={editDaysWeek}
+                        onChange={(event) => setEditDaysWeek(event.target.value)}
+                        placeholder="Dias semana CSV (1-7)"
+                        className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
+                      />
+                      <input
+                        value={editDaysMonth}
+                        onChange={(event) => setEditDaysMonth(event.target.value)}
+                        placeholder="Dias mes CSV (1-31)"
+                        className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
+                      />
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onUpdateSegment(segment.id, {
+                              name: editName,
+                              description: editDescription,
+                              startTime: editStart,
+                              endTime: editEnd,
+                              specificDates: editDates,
+                              exclusionDates: editExclusions,
+                              daysOfWeek: editDaysWeek,
+                              daysOfMonth: editDaysMonth,
+                            })
+                            setEditingSegmentId(null)
+                          }}
+                          disabled={busy}
+                          className="rounded border border-slate-300 px-2 py-1 text-[11px]"
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingSegmentId(null)}
+                          className="rounded border border-slate-300 px-2 py-1 text-[11px]"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-xs font-semibold">{segment.name}</p>
+                      <p className="text-[11px] text-slate-600">
+                        {segment.startTime} - {segment.endTime}
+                      </p>
+                      <p className="text-[11px] text-slate-600">
+                        reglas: {segment.specificDates.length + segment.daysOfWeek.length + segment.daysOfMonth.length}
+                      </p>
+                      <p className="text-[11px] text-slate-600">
+                        exclusiones: {segment.exclusionDates.length}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingSegmentId(segment.id)
+                          setEditName(segment.name)
+                          setEditDescription(segment.description)
+                          setEditStart(segment.startTime)
+                          setEditEnd(segment.endTime)
+                          setEditDates(segment.specificDates.join(','))
+                          setEditExclusions(segment.exclusionDates.join(','))
+                          setEditDaysWeek(segment.daysOfWeek.join(','))
+                          setEditDaysMonth(segment.daysOfMonth.join(','))
+                        }}
+                        className="mt-1 rounded border border-slate-300 px-2 py-1 text-[11px]"
+                      >
+                        Editar
+                      </button>
+                    </>
+                  )}
                 </div>
               ))
             )}
