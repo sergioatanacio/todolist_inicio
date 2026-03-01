@@ -66,6 +66,10 @@ export type AppController = {
     createList: () => Promise<void>
     updateList: (todoListId: string, data: { name: string; description: string }) => Promise<void>
     createTask: () => Promise<void>
+    updateTask: (
+      taskId: string,
+      data: { title: string; durationMinutes: number },
+    ) => Promise<void>
     changeStatus: (taskId: string, toStatus: TaskStatus) => Promise<void>
     createAiAgent: () => Promise<void>
     setAiAgentState: (
@@ -578,6 +582,33 @@ export const useAppController = (): AppController => {
     }
   }
 
+  const updateTask = async (
+    taskId: string,
+    data: { title: string; durationMinutes: number },
+  ) => {
+    const services = servicesRef.current
+    if (!services || userId === null || !context.workspaceId || !context.projectId || !context.listId) {
+      return
+    }
+    setBusy(true)
+    setError('task', null)
+    try {
+      await services.taskPlanning.updateTask({
+        workspaceId: context.workspaceId,
+        projectId: context.projectId,
+        actorUserId: userId,
+        taskId,
+        title: data.title,
+        durationMinutes: data.durationMinutes,
+      })
+      loaders.loadKanban(services, context.listId)
+    } catch (error) {
+      setError('task', error instanceof Error ? error.message : 'No se pudo editar tarea.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const changeStatus = async (taskId: string, toStatus: TaskStatus) => {
     const services = servicesRef.current
     if (!services || userId === null || !context.workspaceId || !context.projectId || !context.listId) {
@@ -911,6 +942,7 @@ export const useAppController = (): AppController => {
       createList,
       updateList,
       createTask,
+      updateTask,
       changeStatus,
       createAiAgent,
       setAiAgentState,
