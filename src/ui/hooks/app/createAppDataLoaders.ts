@@ -45,6 +45,7 @@ export const createAppDataLoaders = (deps: LoaderDependencies) => {
       id: item.id,
       projectId: item.projectId,
       name: item.name,
+      description: item.description,
       startDate: item.startDate,
       endDate: item.endDate,
       remainingUsableMinutes: item.calcularMinutosValidosDesde(nowMs),

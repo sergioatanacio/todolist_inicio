@@ -315,6 +315,18 @@ export class DisponibilidadAggregate {
     })
   }
 
+  rename(rawName: string) {
+    return this.cloneWith({
+      name: DisponibilidadName.create(rawName),
+    })
+  }
+
+  updateDescription(rawDescription: string) {
+    return this.cloneWith({
+      description: DisponibilidadDescription.create(rawDescription),
+    })
+  }
+
   changeDateRange(startDate: string, endDate: string) {
     transitionAvailability(this._state, 'CHANGE_DATE_RANGE')
     return this.cloneWith({

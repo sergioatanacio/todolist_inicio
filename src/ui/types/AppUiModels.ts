@@ -15,6 +15,7 @@ export type DisponibilidadVm = {
   id: string
   projectId: string
   name: string
+  description: string
   startDate: string
   endDate: string
   remainingUsableMinutes: number

@@ -101,6 +101,9 @@ function App() {
           workspaceName={forms.workspaceName}
           onWorkspaceNameChange={setForms.setWorkspaceName}
           onCreate={() => void actions.createWorkspace()}
+          onUpdate={(workspaceId, name) =>
+            void actions.updateWorkspace(workspaceId, name)
+          }
           busy={state.busy}
           error={state.errors.workspace}
           workspaces={state.workspaces}
@@ -115,6 +118,9 @@ function App() {
           onProjectNameChange={setForms.setProjectName}
           onProjectDescriptionChange={setForms.setProjectDescription}
           onCreateProject={() => void actions.createProject()}
+          onUpdateProject={(projectId, name, description) =>
+            void actions.updateProject(projectId, name, description)
+          }
           busy={state.busy}
           error={state.errors.project}
           projects={state.projects}
@@ -172,6 +178,9 @@ function App() {
           onDispStartChange={setForms.setDispStart}
           onDispEndChange={setForms.setDispEnd}
           onCreate={() => void actions.createDisponibilidad()}
+          onUpdate={(disponibilidadId, data) =>
+            void actions.updateDisponibilidad(disponibilidadId, data)
+          }
           busy={state.busy}
           error={state.errors.disponibilidad}
           disponibilidades={state.disponibilidades}
