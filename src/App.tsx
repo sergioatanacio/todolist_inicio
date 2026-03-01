@@ -360,6 +360,7 @@ function App() {
           busy={state.busy}
           error={state.errors.task}
           kanban={state.kanban}
+          timeline={state.kanbanTimeline}
           onChangeStatus={(taskId, toStatus) =>
             void actions.changeStatus(taskId, toStatus)
           }

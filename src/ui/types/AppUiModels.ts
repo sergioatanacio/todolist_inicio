@@ -47,6 +47,51 @@ export type TaskVm = {
   durationMinutes: number
 }
 
+export type KanbanTimelineRowVm = {
+  rowId: string
+  startAt: number
+  endAt: number
+  segmentId: string | null
+  segmentName: string | null
+  segmentLabel: string | null
+}
+
+export type KanbanTimelineScheduledItemVm = {
+  taskId: string
+  title: string
+  durationMinutes: number
+  status: 'PENDING' | 'IN_PROGRESS'
+  rowStart: number
+  rowSpan: number
+  segmentId: string | null
+  segmentName: string | null
+  startsAt: number
+  endsAt: number
+  orderInList: number
+}
+
+export type KanbanTimelineArchivedItemVm = {
+  taskId: string
+  title: string
+  durationMinutes: number
+  status: 'DONE' | 'ABANDONED'
+  orderInList: number
+}
+
+export type KanbanTimelineVm = {
+  disponibilidadId: string
+  todoListId: string
+  timezone: string
+  slotMinutes: number
+  windowStart: number
+  windowEnd: number
+  rows: KanbanTimelineRowVm[]
+  pendingItems: KanbanTimelineScheduledItemVm[]
+  progressItems: KanbanTimelineScheduledItemVm[]
+  doneItems: KanbanTimelineArchivedItemVm[]
+  abandonedItems: KanbanTimelineArchivedItemVm[]
+}
+
 export type AvailabilityPlanVm = {
   plannedBlocks: Array<{
     taskId: string
@@ -153,6 +198,7 @@ export type AppControllerState = {
   disponibilidades: DisponibilidadVm[]
   lists: TodoListVm[]
   kanban: Record<TaskStatus, TaskVm[]>
+  kanbanTimeline: KanbanTimelineVm | null
   projectCalendar: ProjectCalendarVm
   availabilityPlan: AvailabilityPlanVm | null
   aiAgents: AiAgentVm[]
