@@ -14,13 +14,17 @@ import { taskStateMachineSpec } from './TaskStateMachine.spec.ts'
 import { taskWorkflowServiceSpec } from './TaskWorkflowService.spec.ts'
 import { todoListAggregateSpec } from './TodoListAggregate.spec.ts'
 import { schedulingPolicySpec } from './SchedulingPolicy.spec.ts'
+import { greedySchedulingStrategySpec } from './GreedySchedulingStrategy.spec.ts'
+import { schedulingPolicyDelegationSpec } from './SchedulingPolicyDelegation.spec.ts'
+import { schedulingStrategyContractSpec } from './SchedulingStrategyContract.spec.ts'
+import { domainEventPublisherSpec } from './DomainEventPublisher.spec.ts'
 import { workspaceAggregateSpec } from './WorkspaceAggregate.spec.ts'
 import { workspaceConversationAggregateSpec } from './WorkspaceConversationAggregate.spec.ts'
 import { workspaceConversationMessageStateMachineSpec } from './WorkspaceConversationMessageStateMachine.spec.ts'
 import { workspaceMemberStateMachineSpec } from './WorkspaceMemberStateMachine.spec.ts'
 import { workspaceOwnershipStateMachineSpec } from './WorkspaceOwnershipStateMachine.spec.ts'
 
-export const runDomainSpecs = () => {
+export const runDomainSpecs = async () => {
   aiStateMachinesSpec()
   aiAgentAggregateSpec()
   aiConversationAggregateSpec()
@@ -38,6 +42,10 @@ export const runDomainSpecs = () => {
   taskWorkflowServiceSpec()
   todoListAggregateSpec()
   schedulingPolicySpec()
+  greedySchedulingStrategySpec()
+  schedulingPolicyDelegationSpec()
+  schedulingStrategyContractSpec()
+  await domainEventPublisherSpec()
   workspaceMemberStateMachineSpec()
   workspaceOwnershipStateMachineSpec()
   workspaceConversationMessageStateMachineSpec()
