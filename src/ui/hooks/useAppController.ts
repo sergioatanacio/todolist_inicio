@@ -914,6 +914,7 @@ export const useAppController = (): AppController => {
     disponibilidades: data.disponibilidades,
     lists: data.lists,
     kanban: data.kanban,
+    kanbanTimeline: data.kanbanTimeline,
     projectCalendar: data.projectCalendar,
     availabilityPlan: data.availabilityPlan,
     aiAgents: data.aiAgents,

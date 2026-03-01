@@ -12,6 +12,7 @@ import type { ReorderTasksInTodoListCommand } from './commands/task/ReorderTasks
 import type { ToggleTaskDoneCommand } from './commands/task/ToggleTaskDoneCommand'
 import type { UpdateTaskCommand } from './commands/task/UpdateTaskCommand'
 import { BuildDisponibilidadCalendarUseCase } from './use_cases/planning/BuildDisponibilidadCalendarUseCase'
+import { BuildKanbanTimelineByTodoListUseCase } from './use_cases/planning/BuildKanbanTimelineByTodoListUseCase'
 import { BuildProjectCalendarUseCase } from './use_cases/planning/BuildProjectCalendarUseCase'
 import { ChangeTaskStatusUseCase } from './use_cases/task/ChangeTaskStatusUseCase'
 import { CreateTaskUseCase } from './use_cases/task/CreateTaskUseCase'
@@ -24,6 +25,7 @@ export class TaskPlanningAppService {
   private readonly buildDisponibilidadCalendarUseCase: BuildDisponibilidadCalendarUseCase
   private readonly buildProjectCalendarUseCase: BuildProjectCalendarUseCase
   private readonly getKanbanByTodoListUseCase: GetKanbanByTodoListUseCase
+  private readonly buildKanbanTimelineByTodoListUseCase: BuildKanbanTimelineByTodoListUseCase
   private readonly reorderTasksInTodoListUseCase: ReorderTasksInTodoListUseCase
   private readonly createTaskUseCase: CreateTaskUseCase
   private readonly updateTaskUseCase: UpdateTaskUseCase
@@ -54,6 +56,12 @@ export class TaskPlanningAppService {
       policy,
     )
     this.getKanbanByTodoListUseCase = new GetKanbanByTodoListUseCase(taskRepository)
+    this.buildKanbanTimelineByTodoListUseCase =
+      new BuildKanbanTimelineByTodoListUseCase(
+        taskRepository,
+        todoListRepository,
+        disponibilidadRepository,
+      )
     this.reorderTasksInTodoListUseCase = new ReorderTasksInTodoListUseCase(
       taskRepository,
       todoListRepository,
@@ -105,6 +113,13 @@ export class TaskPlanningAppService {
 
   getKanbanByTodoList(todoListId: string) {
     return this.getKanbanByTodoListUseCase.execute({ todoListId })
+  }
+
+  buildKanbanTimelineByTodoList(todoListId: string, slotMinutes?: number) {
+    return this.buildKanbanTimelineByTodoListUseCase.execute({
+      todoListId,
+      slotMinutes,
+    })
   }
 
   reorderTasksInTodoList(command: ReorderTasksInTodoListCommand) {

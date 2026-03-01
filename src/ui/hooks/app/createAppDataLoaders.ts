@@ -7,6 +7,7 @@ type LoaderDependencies = {
   setDisponibilidades: (rows: AppControllerState['disponibilidades']) => void
   setLists: (rows: AppControllerState['lists']) => void
   setKanban: (rows: AppControllerState['kanban']) => void
+  setKanbanTimeline: (value: AppControllerState['kanbanTimeline']) => void
   setSelectedDispId: (value: string | ((current: string) => string)) => void
   setAiAgents: (rows: AppControllerState['aiAgents']) => void
   setAiConversations: (rows: AppControllerState['aiConversations']) => void
@@ -78,6 +79,7 @@ export const createAppDataLoaders = (deps: LoaderDependencies) => {
 
   const loadKanban = (services: AppServices, todoListId: string) => {
     const data = services.taskPlanning.getKanbanByTodoList(todoListId)
+    const timeline = services.taskPlanning.buildKanbanTimelineByTodoList(todoListId, 5)
     deps.setKanban({
       PENDING: data.PENDING.map((task) => ({
         id: task.id,
@@ -103,6 +105,19 @@ export const createAppDataLoaders = (deps: LoaderDependencies) => {
         status: task.status,
         durationMinutes: task.durationMinutes,
       })),
+    })
+    deps.setKanbanTimeline({
+      disponibilidadId: timeline.disponibilidadId,
+      todoListId: timeline.todoListId,
+      timezone: timeline.timezone,
+      slotMinutes: timeline.slotMinutes,
+      windowStart: timeline.windowStart,
+      windowEnd: timeline.windowEnd,
+      rows: timeline.rows,
+      pendingItems: timeline.pendingItems,
+      progressItems: timeline.progressItems,
+      doneItems: timeline.doneItems,
+      abandonedItems: timeline.abandonedItems,
     })
   }
 

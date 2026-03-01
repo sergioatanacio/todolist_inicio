@@ -22,6 +22,9 @@ export const useUiDataState = () => {
   >([])
   const [lists, setLists] = useState<AppControllerState['lists']>([])
   const [kanban, setKanban] = useState<AppControllerState['kanban']>(createEmptyKanban)
+  const [kanbanTimeline, setKanbanTimeline] = useState<AppControllerState['kanbanTimeline']>(
+    null,
+  )
   const [projectCalendar, setProjectCalendar] = useState<ProjectCalendarVm>(
     emptyProjectCalendar,
   )
@@ -46,6 +49,7 @@ export const useUiDataState = () => {
       disponibilidades,
       lists,
       kanban,
+      kanbanTimeline,
       projectCalendar,
       availabilityPlan,
       aiAgents,
@@ -59,6 +63,7 @@ export const useUiDataState = () => {
       disponibilidades,
       lists,
       kanban,
+      kanbanTimeline,
       projectCalendar,
       availabilityPlan,
       aiAgents,
@@ -75,6 +80,7 @@ export const useUiDataState = () => {
       setDisponibilidades,
       setLists,
       setKanban,
+      setKanbanTimeline,
       setProjectCalendar,
       setAvailabilityPlan,
       setAiAgents,
@@ -92,7 +98,10 @@ export const useUiDataState = () => {
         setDisponibilidades([])
         setLists([])
       },
-      clearKanban: () => setKanban(createEmptyKanban()),
+      clearKanban: () => {
+        setKanban(createEmptyKanban())
+        setKanbanTimeline(null)
+      },
       clearProjectCalendar: () => setProjectCalendar(emptyProjectCalendar),
       clearAvailabilityPlan: () => setAvailabilityPlan(null),
       clearAiContext: () => {
