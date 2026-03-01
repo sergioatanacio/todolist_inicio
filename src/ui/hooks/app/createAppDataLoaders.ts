@@ -71,6 +71,7 @@ export const createAppDataLoaders = (deps: LoaderDependencies) => {
       projectId: list.projectId,
       disponibilidadId: list.disponibilidadId,
       name: list.name,
+      description: list.description,
     }))
     deps.setLists(lists)
   }

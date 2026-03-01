@@ -14,6 +14,7 @@ import { ProjectCalendarScreen } from './ui/features/calendars/ProjectCalendarSc
 import { AvailabilityCalendarScreen } from './ui/features/calendars/AvailabilityCalendarScreen'
 import { WorkspaceAiScreen } from './ui/features/ai/WorkspaceAiScreen'
 import { ProjectAiScreen } from './ui/features/ai/ProjectAiScreen'
+import type { BreadcrumbItem } from './ui/layout/AppBreadcrumbs'
 
 function App() {
   const { state, forms, setForms, actions } = useAppController()
@@ -55,6 +56,8 @@ function App() {
 
   const workspaceId = state.context.workspaceId
   const projectId = state.context.projectId
+  const activeWorkspaceName =
+    state.workspaces.find((workspace) => workspace.id === workspaceId)?.name ?? null
   const activeProjectName =
     state.projects.find((project) => project.id === projectId)?.name ?? null
   const availabilityId =
@@ -64,12 +67,110 @@ function App() {
     : null
   const currentWorkspaceId = workspaceId ?? ''
   const currentProjectId = projectId ?? ''
+  const currentListId = state.context.listId ?? ''
+  const activeList = currentListId
+    ? state.lists.find((list) => list.id === currentListId) ?? null
+    : null
+  const activeListDisponibilidad = activeList
+    ? state.disponibilidades.find((item) => item.id === activeList.disponibilidadId) ?? null
+    : null
+
+  const breadcrumbs: BreadcrumbItem[] = (() => {
+    const items: BreadcrumbItem[] = [
+      { label: 'Workspaces', onClick: () => actions.navigate('/app/workspaces') },
+    ]
+    if (workspaceId) {
+      items.push({
+        label: `Workspace: ${activeWorkspaceName ?? workspaceId}`,
+        onClick: () => actions.navigate(`/app/workspaces/${workspaceId}`),
+      })
+    }
+    if (projectId) {
+      items.push({
+        label: `Proyecto: ${activeProjectName ?? projectId}`,
+        onClick: () =>
+          actions.navigate(`/app/workspaces/${currentWorkspaceId}/projects/${projectId}/overview`),
+      })
+    }
+
+    if (state.route.kind === 'project' && state.route.tab === 'overview') {
+      items.push({ label: 'Overview' })
+    }
+    if (state.route.kind === 'workspace') {
+      items.push({ label: 'Proyectos' })
+    }
+    if (state.route.kind === 'project' && state.route.tab === 'disponibilidades') {
+      items.push({ label: 'Disponibilidades' })
+    }
+    if (state.route.kind === 'project' && state.route.tab === 'lists') {
+      items.push({ label: 'Listas' })
+      const selected = state.disponibilidades.find((item) => item.id === forms.selectedDispId)
+      if (selected) {
+        items.push({ label: `Disponibilidad: ${selected.name}` })
+      }
+    }
+    if (state.route.kind === 'project' && state.route.tab === 'calendar') {
+      items.push({ label: 'Calendar Proyecto' })
+    }
+    if (state.route.kind === 'workspaceAi') {
+      items.push({ label: 'IA Workspace' })
+    }
+    if (state.route.kind === 'project' && state.route.tab === 'ai') {
+      items.push({ label: 'IA Proyecto' })
+    }
+    if (state.route.kind === 'availability' && activeDisponibilidad) {
+      items.push({
+        label: `Disponibilidad: ${activeDisponibilidad.name}`,
+        onClick: () =>
+          actions.navigate(
+            `/app/workspaces/${currentWorkspaceId}/projects/${currentProjectId}/disponibilidades`,
+          ),
+      })
+      items.push({ label: 'Segmentos' })
+    }
+    if (state.route.kind === 'availabilityCalendar' && state.context.disponibilidadId) {
+      const availability = state.disponibilidades.find(
+        (item) => item.id === state.context.disponibilidadId,
+      )
+      items.push({
+        label: `Disponibilidad: ${availability?.name ?? state.context.disponibilidadId}`,
+        onClick: () =>
+          actions.navigate(
+            `/app/workspaces/${currentWorkspaceId}/projects/${currentProjectId}/disponibilidades/${state.context.disponibilidadId}`,
+          ),
+      })
+      items.push({ label: 'Calendar Disponibilidad' })
+    }
+    if (state.route.kind === 'kanban') {
+      if (activeListDisponibilidad) {
+        items.push({
+          label: `Disponibilidad: ${activeListDisponibilidad.name}`,
+          onClick: () =>
+            actions.navigate(
+              `/app/workspaces/${currentWorkspaceId}/projects/${currentProjectId}/lists`,
+            ),
+        })
+      }
+      if (activeList) {
+        items.push({
+          label: `Lista: ${activeList.name}`,
+          onClick: () =>
+            actions.navigate(
+              `/app/workspaces/${currentWorkspaceId}/projects/${currentProjectId}/lists`,
+            ),
+        })
+      }
+      items.push({ label: 'Kanban' })
+    }
+    return items
+  })()
 
   return (
     <AppShell
       userName={state.userName}
       userEmail={state.userEmail}
       projectName={activeProjectName}
+      breadcrumbs={breadcrumbs}
       onLogout={actions.logout}
       sidebar={
         <AppSidebar
@@ -220,6 +321,9 @@ function App() {
           onSegDaysMonthChange={setForms.setSegDaysMonth}
           onSegExclusionsChange={setForms.setSegExclusions}
           onAddSegment={() => void actions.addSegment()}
+          onUpdateSegment={(segmentId, data) =>
+            void actions.updateSegment(segmentId, data)
+          }
           busy={state.busy}
           error={state.errors.segment}
         />
@@ -232,6 +336,7 @@ function App() {
           onListNameChange={setForms.setListName}
           onSelectedDispIdChange={setForms.setSelectedDispId}
           onCreateList={() => void actions.createList()}
+          onUpdateList={(todoListId, data) => void actions.updateList(todoListId, data)}
           busy={state.busy}
           error={state.errors.list}
           disponibilidades={state.disponibilidades}

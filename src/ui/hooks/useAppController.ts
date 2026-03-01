@@ -40,6 +40,19 @@ export type AppController = {
       description: string,
     ) => Promise<void>
     createDisponibilidad: () => Promise<void>
+    updateSegment: (
+      segmentId: string,
+      data: {
+        name: string
+        description: string
+        startTime: string
+        endTime: string
+        specificDates: string
+        exclusionDates: string
+        daysOfWeek: string
+        daysOfMonth: string
+      },
+    ) => Promise<void>
     updateDisponibilidad: (
       disponibilidadId: string,
       data: {
@@ -51,6 +64,7 @@ export type AppController = {
     ) => Promise<void>
     addSegment: () => Promise<void>
     createList: () => Promise<void>
+    updateList: (todoListId: string, data: { name: string; description: string }) => Promise<void>
     createTask: () => Promise<void>
     changeStatus: (taskId: string, toStatus: TaskStatus) => Promise<void>
     createAiAgent: () => Promise<void>
@@ -439,6 +453,47 @@ export const useAppController = (): AppController => {
     }
   }
 
+  const updateSegment = async (
+    segmentId: string,
+    data: {
+      name: string
+      description: string
+      startTime: string
+      endTime: string
+      specificDates: string
+      exclusionDates: string
+      daysOfWeek: string
+      daysOfMonth: string
+    },
+  ) => {
+    const services = servicesRef.current
+    const targetDisponibilidadId = context.disponibilidadId ?? forms.selectedDispId
+    if (!services || userId === null || !context.projectId || !targetDisponibilidadId) return
+    setBusy(true)
+    setError('segment', null)
+    try {
+      await services.disponibilidad.updateSegment({
+        projectId: context.projectId,
+        disponibilidadId: targetDisponibilidadId,
+        segmentId,
+        actorUserId: userId,
+        name: data.name,
+        description: data.description,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        specificDates: parseCsvDates(data.specificDates),
+        exclusionDates: parseCsvDates(data.exclusionDates),
+        daysOfWeek: parseCsvNumbers(data.daysOfWeek),
+        daysOfMonth: parseCsvNumbers(data.daysOfMonth),
+      })
+      loaders.loadProjectContext(services, context.projectId)
+    } catch (error) {
+      setError('segment', error instanceof Error ? error.message : 'No se pudo editar segmento.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const createList = async () => {
     const services = servicesRef.current
     if (
@@ -465,6 +520,33 @@ export const useAppController = (): AppController => {
       loaders.loadProjectContext(services, context.projectId)
     } catch (error) {
       setError('list', error instanceof Error ? error.message : 'No se pudo crear lista.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const updateList = async (
+    todoListId: string,
+    data: { name: string; description: string },
+  ) => {
+    const services = servicesRef.current
+    if (!services || userId === null || !context.workspaceId || !context.projectId) {
+      return
+    }
+    setBusy(true)
+    setError('list', null)
+    try {
+      await services.todoList.update({
+        workspaceId: context.workspaceId,
+        projectId: context.projectId,
+        todoListId,
+        actorUserId: userId,
+        name: data.name,
+        description: data.description,
+      })
+      loaders.loadProjectContext(services, context.projectId)
+    } catch (error) {
+      setError('list', error instanceof Error ? error.message : 'No se pudo editar lista.')
     } finally {
       setBusy(false)
     }
@@ -823,9 +905,11 @@ export const useAppController = (): AppController => {
       createProject,
       updateProject,
       createDisponibilidad,
+      updateSegment,
       updateDisponibilidad,
       addSegment,
       createList,
+      updateList,
       createTask,
       changeStatus,
       createAiAgent,

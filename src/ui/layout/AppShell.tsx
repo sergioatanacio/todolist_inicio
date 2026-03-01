@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react'
+import { AppBreadcrumbs, type BreadcrumbItem } from './AppBreadcrumbs'
 
 type AppShellProps = {
   userName: string
   userEmail: string
   projectName: string | null
+  breadcrumbs: BreadcrumbItem[]
   onLogout: () => void
   sidebar: ReactNode
   children: ReactNode
@@ -13,6 +15,7 @@ export function AppShell({
   userName,
   userEmail,
   projectName,
+  breadcrumbs,
   onLogout,
   sidebar,
   children,
@@ -33,6 +36,7 @@ export function AppShell({
               Cerrar sesion
             </button>
           </div>
+          <AppBreadcrumbs items={breadcrumbs} />
         </header>
 
         <div className="grid gap-4 md:grid-cols-[240px_1fr]">

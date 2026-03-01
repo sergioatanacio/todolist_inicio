@@ -37,6 +37,7 @@ export type TodoListVm = {
   projectId: string
   disponibilidadId: string
   name: string
+  description: string
 }
 
 export type TaskVm = {
