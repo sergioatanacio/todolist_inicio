@@ -15,6 +15,22 @@ const assert = (condition: boolean, message: string) => {
   if (!condition) throw new Error(message)
 }
 
+const assertRejects = async (
+  work: () => Promise<unknown>,
+  messageIncludes: string,
+) => {
+  try {
+    await work()
+    throw new Error('Expected promise to reject')
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    assert(
+      message.includes(messageIncludes),
+      `Expected error message to include "${messageIncludes}" but got "${message}"`,
+    )
+  }
+}
+
 const isoFromNow = (daysOffset: number): string => {
   const now = new Date()
   const date = new Date(
@@ -167,6 +183,38 @@ export const taskPlanningUseCasesAppSpec = async () => {
   })
   assert(created2.orderInList === 2, 'Second task should have order 2')
 
+  await service.reorderTasksInTodoList({
+    workspaceId: workspace.id,
+    projectId: project.id,
+    actorUserId: 1,
+    todoListId: todoList.id,
+    orderedTaskIds: [created2.id, created.id],
+  })
+  const reorderedKanban = service.getKanbanByTodoList(todoList.id)
+  const reorderedIds = [...reorderedKanban.PENDING, ...reorderedKanban.IN_PROGRESS].map(
+    (task) => task.id,
+  )
+  assert(
+    reorderedIds[0] === created2.id && reorderedIds[1] === created.id,
+    'Reorder should persist the provided order',
+  )
+  assert(
+    reorderedKanban.PENDING.every((task) => task.status === 'PENDING'),
+    'Reorder should not change task status',
+  )
+
+  await assertRejects(
+    () =>
+      service.reorderTasksInTodoList({
+        workspaceId: workspace.id,
+        projectId: project.id,
+        actorUserId: 1,
+        todoListId: todoList.id,
+        orderedTaskIds: [created.id, created.id],
+      }),
+    'IDs de tareas duplicados',
+  )
+
   await service.changeTaskStatus({
     workspaceId: workspace.id,
     projectId: project.id,
@@ -192,5 +240,58 @@ export const taskPlanningUseCasesAppSpec = async () => {
   assert(
     projectCalendar.plannedBlocks[0].todoListName.length >= 1,
     'Project planned block should include todo list name',
+  )
+
+  const overflowDisponibilidad = DisponibilidadAggregate.create({
+    projectId: project.id,
+    name: 'Disp Overflow',
+    startDate: targetDate,
+    endDate: targetDate,
+    segments: [
+      {
+        name: 'Corto',
+        startTime: '09:00',
+        endTime: '10:00',
+        specificDates: [targetDate],
+      },
+    ],
+  })
+  disponibilidadRepo.save(overflowDisponibilidad)
+  const overflowList = TodoListAggregate.create(
+    project.id,
+    overflowDisponibilidad.id,
+    1,
+    'Lista Overflow',
+    '',
+  )
+  todoListRepo.save(overflowList)
+
+  const overflowA = await service.createTask({
+    workspaceId: workspace.id,
+    projectId: project.id,
+    todoListId: overflowList.id,
+    actorUserId: 1,
+    title: 'Overflow A',
+    durationMinutes: 45,
+  })
+  const overflowB = await service.createTask({
+    workspaceId: workspace.id,
+    projectId: project.id,
+    todoListId: overflowList.id,
+    actorUserId: 1,
+    title: 'Overflow B',
+    durationMinutes: 30,
+  })
+
+  await assertRejects(
+    () =>
+      service.reorderTasksInTodoList({
+        workspaceId: workspace.id,
+        projectId: project.id,
+        actorUserId: 1,
+        todoListId: overflowList.id,
+        orderedTaskIds: [overflowB.id, overflowA.id],
+      }),
+    'No se puede reordenar: la disponibilidad no alcanza para planificar todas las tareas.',
   )
 }

@@ -87,6 +87,7 @@ export const createAppDataLoaders = (deps: LoaderDependencies) => {
         description: task.description,
         status: task.status,
         durationMinutes: task.durationMinutes,
+        orderInList: task.orderInList,
       })),
       IN_PROGRESS: data.IN_PROGRESS.map((task) => ({
         id: task.id,
@@ -94,6 +95,7 @@ export const createAppDataLoaders = (deps: LoaderDependencies) => {
         description: task.description,
         status: task.status,
         durationMinutes: task.durationMinutes,
+        orderInList: task.orderInList,
       })),
       DONE: data.DONE.map((task) => ({
         id: task.id,
@@ -101,6 +103,7 @@ export const createAppDataLoaders = (deps: LoaderDependencies) => {
         description: task.description,
         status: task.status,
         durationMinutes: task.durationMinutes,
+        orderInList: task.orderInList,
       })),
       ABANDONED: data.ABANDONED.map((task) => ({
         id: task.id,
@@ -108,6 +111,7 @@ export const createAppDataLoaders = (deps: LoaderDependencies) => {
         description: task.description,
         status: task.status,
         durationMinutes: task.durationMinutes,
+        orderInList: task.orderInList,
       })),
     })
     deps.setKanbanTimeline({

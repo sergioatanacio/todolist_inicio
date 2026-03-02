@@ -46,6 +46,7 @@ export type TaskVm = {
   description: string
   status: TaskStatus
   durationMinutes: number
+  orderInList: number
 }
 
 export type KanbanTimelineRowVm = {

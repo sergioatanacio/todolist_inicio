@@ -1,4 +1,5 @@
 import { domainError } from '../../../dominio/errores/DomainError'
+import type { DisponibilidadRepository } from '../../../dominio/puertos/DisponibilidadRepository'
 import type { ProjectRepository } from '../../../dominio/puertos/ProjectRepository'
 import type { TaskRepository } from '../../../dominio/puertos/TaskRepository'
 import type { TodoListRepository } from '../../../dominio/puertos/TodoListRepository'
@@ -6,6 +7,7 @@ import type { UnitOfWork } from '../../../dominio/puertos/UnitOfWork'
 import type { WorkspaceRepository } from '../../../dominio/puertos/WorkspaceRepository'
 import { AuthorizationPolicy } from '../../../dominio/servicios/AuthorizationPolicy'
 import { ContextIntegrityPolicy } from '../../../dominio/servicios/ContextIntegrityPolicy'
+import { SchedulingPolicy } from '../../../dominio/servicios/SchedulingPolicy'
 import {
   type ReorderTasksInTodoListCommand,
   validateReorderTasksInTodoListCommand,
@@ -15,9 +17,11 @@ export class ReorderTasksInTodoListUseCase {
   constructor(
     private readonly taskRepository: TaskRepository,
     private readonly todoListRepository: TodoListRepository,
+    private readonly disponibilidadRepository: DisponibilidadRepository,
     private readonly projectRepository: ProjectRepository,
     private readonly workspaceRepository: WorkspaceRepository,
     private readonly unitOfWork: UnitOfWork,
+    private readonly schedulingPolicy: SchedulingPolicy,
   ) {}
 
   execute(command: ReorderTasksInTodoListCommand) {
@@ -61,10 +65,59 @@ export class ReorderTasksInTodoListUseCase {
       const updated = input.orderedTaskIds.map((id, index) => {
         const task = byId.get(id)
         if (!task) throw domainError('NOT_FOUND', 'Una tarea no existe en la lista')
-        const next = task.setOrderInList(input.actorUserId, index + 1)
-        this.taskRepository.save(next)
-        return next
+        return task.setOrderInList(input.actorUserId, index + 1)
       })
+
+      const disponibilidad = this.disponibilidadRepository.findById(
+        todoList.disponibilidadId,
+      )
+      if (!disponibilidad) {
+        throw domainError('NOT_FOUND', 'Disponibilidad no encontrada para reordenar tareas')
+      }
+
+      const listsInDisponibilidad = this.todoListRepository
+        .findByProjectId(project.id)
+        .filter((list) => list.disponibilidadId === todoList.disponibilidadId)
+        .sort((a, b) => a.orderInDisponibilidad - b.orderInDisponibilidad)
+
+      const currentTasksInDisponibilidad = listsInDisponibilidad.flatMap((list) =>
+        this.taskRepository.findByTodoListId(list.id),
+      )
+      const reorderedTasksInDisponibilidad = listsInDisponibilidad.flatMap((list) => {
+        if (list.id === todoList.id) return updated
+        return this.taskRepository.findByTodoListId(list.id)
+      })
+      const scopedTaskIds = new Set(
+        reorderedTasksInDisponibilidad.map((task) => task.id),
+      )
+
+      const currentPlan = this.schedulingPolicy.buildPlan({
+        disponibilidad,
+        todoLists: listsInDisponibilidad,
+        tasks: currentTasksInDisponibilidad,
+      })
+      const reorderedPlan = this.schedulingPolicy.buildPlan({
+        disponibilidad,
+        todoLists: listsInDisponibilidad,
+        tasks: reorderedTasksInDisponibilidad,
+      })
+      const currentUnplanned = new Set(
+        currentPlan.unplannedTaskIds.filter((taskId) => scopedTaskIds.has(taskId)),
+      )
+      const nextUnplanned = reorderedPlan.unplannedTaskIds.filter((taskId) =>
+        scopedTaskIds.has(taskId),
+      )
+      const hasNewOverflow = nextUnplanned.some((taskId) => !currentUnplanned.has(taskId))
+      if (hasNewOverflow) {
+        throw domainError(
+          'CONFLICT',
+          'No se puede reordenar: la disponibilidad no alcanza para planificar todas las tareas.',
+        )
+      }
+
+      for (const task of updated) {
+        this.taskRepository.save(task)
+      }
       return updated
     })
   }
