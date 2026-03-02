@@ -37,6 +37,7 @@ type SegmentsScreenProps = {
       daysOfMonth: string
     },
   ) => void
+  onDeleteSegment: (segmentId: string) => void
   busy: boolean
   error: string | null
 }
@@ -64,6 +65,7 @@ export function SegmentsScreen({
   onSegExclusionsChange,
   onAddSegment,
   onUpdateSegment,
+  onDeleteSegment,
   busy,
   error,
 }: SegmentsScreenProps) {
@@ -258,23 +260,42 @@ export function SegmentsScreen({
                       <p className="text-[11px] text-slate-600">
                         exclusiones: {segment.exclusionDates.length}
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingSegmentId(segment.id)
-                          setEditName(segment.name)
-                          setEditDescription(segment.description)
-                          setEditStart(segment.startTime)
-                          setEditEnd(segment.endTime)
-                          setEditDates(segment.specificDates.join(','))
-                          setEditExclusions(segment.exclusionDates.join(','))
-                          setEditDaysWeek(segment.daysOfWeek.join(','))
-                          setEditDaysMonth(segment.daysOfMonth.join(','))
-                        }}
-                        className="mt-1 rounded border border-slate-300 px-2 py-1 text-[11px]"
-                      >
-                        Editar
-                      </button>
+                      <div className="mt-1 flex gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingSegmentId(segment.id)
+                            setEditName(segment.name)
+                            setEditDescription(segment.description)
+                            setEditStart(segment.startTime)
+                            setEditEnd(segment.endTime)
+                            setEditDates(segment.specificDates.join(','))
+                            setEditExclusions(segment.exclusionDates.join(','))
+                            setEditDaysWeek(segment.daysOfWeek.join(','))
+                            setEditDaysMonth(segment.daysOfMonth.join(','))
+                          }}
+                          className="rounded border border-slate-300 px-2 py-1 text-[11px]"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => {
+                            const accepted = window.confirm(
+                              'Deseas eliminar este segmento?',
+                            )
+                            if (!accepted) return
+                            onDeleteSegment(segment.id)
+                            if (editingSegmentId === segment.id) {
+                              setEditingSegmentId(null)
+                            }
+                          }}
+                          className="rounded border border-rose-300 px-2 py-1 text-[11px] text-rose-700"
+                        >
+                          Eliminar
+                        </button>
+                      </div>
                     </>
                   )}
                 </div>
