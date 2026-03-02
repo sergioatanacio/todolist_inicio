@@ -37,6 +37,7 @@ type SegmentsScreenProps = {
       daysOfMonth: string
     },
   ) => void
+  onDeleteSegment: (segmentId: string) => void
   busy: boolean
   error: string | null
 }
@@ -64,20 +65,13 @@ export function SegmentsScreen({
   onSegExclusionsChange,
   onAddSegment,
   onUpdateSegment,
+  onDeleteSegment,
   busy,
   error,
 }: SegmentsScreenProps) {
   const [specificDateInput, setSpecificDateInput] = useState('')
   const [exclusionDateInput, setExclusionDateInput] = useState('')
   const [editingSegmentId, setEditingSegmentId] = useState<string | null>(null)
-  const [editName, setEditName] = useState('')
-  const [editDescription, setEditDescription] = useState('')
-  const [editStart, setEditStart] = useState('')
-  const [editEnd, setEditEnd] = useState('')
-  const [editDates, setEditDates] = useState('')
-  const [editExclusions, setEditExclusions] = useState('')
-  const [editDaysWeek, setEditDaysWeek] = useState('')
-  const [editDaysMonth, setEditDaysMonth] = useState('')
 
   const analysis = SegmentRulesService.analyzeDraft({
     startTime: segStart,
@@ -147,6 +141,57 @@ export function SegmentsScreen({
     updateMonthdays(next.sort((a, b) => a - b))
   }
 
+  const clearSegmentForm = () => {
+    onSegNameChange('')
+    onSegDescriptionChange('')
+    onSegStartChange('')
+    onSegEndChange('')
+    onSegDatesChange('')
+    onSegExclusionsChange('')
+    onSegDaysWeekChange('')
+    onSegDaysMonthChange('')
+    setSpecificDateInput('')
+    setExclusionDateInput('')
+  }
+
+  const startEditing = (segment: DisponibilidadVm['segments'][number]) => {
+    setEditingSegmentId(segment.id)
+    onSegNameChange(segment.name)
+    onSegDescriptionChange(segment.description)
+    onSegStartChange(segment.startTime)
+    onSegEndChange(segment.endTime)
+    onSegDatesChange(segment.specificDates.join(','))
+    onSegExclusionsChange(segment.exclusionDates.join(','))
+    onSegDaysWeekChange(segment.daysOfWeek.join(','))
+    onSegDaysMonthChange(segment.daysOfMonth.join(','))
+    setSpecificDateInput('')
+    setExclusionDateInput('')
+  }
+
+  const cancelEditing = () => {
+    setEditingSegmentId(null)
+    clearSegmentForm()
+  }
+
+  const submitSegment = () => {
+    if (editingSegmentId) {
+      onUpdateSegment(editingSegmentId, {
+        name: segName,
+        description: segDescription,
+        startTime: segStart,
+        endTime: segEnd,
+        specificDates: segDates,
+        exclusionDates: segExclusions,
+        daysOfWeek: segDaysWeek,
+        daysOfMonth: segDaysMonth,
+      })
+      setEditingSegmentId(null)
+      clearSegmentForm()
+      return
+    }
+    onAddSegment()
+  }
+
   return (
     <section className="rounded-2xl border border-slate-300 bg-white p-4">
       <h1 className="text-lg font-semibold">Segmentos</h1>
@@ -164,119 +209,43 @@ export function SegmentsScreen({
             ) : (
               segments.map((segment) => (
                 <div key={segment.id} className="rounded-lg border border-slate-300 bg-white p-2">
-                  {editingSegmentId === segment.id ? (
-                    <div className="space-y-2">
-                      <input
-                        value={editName}
-                        onChange={(event) => setEditName(event.target.value)}
-                        placeholder="Nombre"
-                        className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                      />
-                      <input
-                        value={editDescription}
-                        onChange={(event) => setEditDescription(event.target.value)}
-                        placeholder="Descripcion"
-                        className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                      />
-                      <div className="grid grid-cols-2 gap-2">
-                        <input
-                          type="time"
-                          value={editStart}
-                          onChange={(event) => setEditStart(event.target.value)}
-                          className="rounded border border-slate-300 px-2 py-1 text-xs"
-                        />
-                        <input
-                          type="time"
-                          value={editEnd}
-                          onChange={(event) => setEditEnd(event.target.value)}
-                          className="rounded border border-slate-300 px-2 py-1 text-xs"
-                        />
-                      </div>
-                      <input
-                        value={editDates}
-                        onChange={(event) => setEditDates(event.target.value)}
-                        placeholder="Fechas CSV (YYYY-MM-DD)"
-                        className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                      />
-                      <input
-                        value={editExclusions}
-                        onChange={(event) => setEditExclusions(event.target.value)}
-                        placeholder="Exclusiones CSV"
-                        className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                      />
-                      <input
-                        value={editDaysWeek}
-                        onChange={(event) => setEditDaysWeek(event.target.value)}
-                        placeholder="Dias semana CSV (1-7)"
-                        className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                      />
-                      <input
-                        value={editDaysMonth}
-                        onChange={(event) => setEditDaysMonth(event.target.value)}
-                        placeholder="Dias mes CSV (1-31)"
-                        className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                      />
-                      <div className="flex gap-1">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            onUpdateSegment(segment.id, {
-                              name: editName,
-                              description: editDescription,
-                              startTime: editStart,
-                              endTime: editEnd,
-                              specificDates: editDates,
-                              exclusionDates: editExclusions,
-                              daysOfWeek: editDaysWeek,
-                              daysOfMonth: editDaysMonth,
-                            })
-                            setEditingSegmentId(null)
-                          }}
-                          disabled={busy}
-                          className="rounded border border-slate-300 px-2 py-1 text-[11px]"
-                        >
-                          Guardar
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingSegmentId(null)}
-                          className="rounded border border-slate-300 px-2 py-1 text-[11px]"
-                        >
-                          Cancelar
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="text-xs font-semibold">{segment.name}</p>
-                      <p className="text-[11px] text-slate-600">
-                        {segment.startTime} - {segment.endTime}
-                      </p>
-                      <p className="text-[11px] text-slate-600">
-                        reglas: {segment.specificDates.length + segment.daysOfWeek.length + segment.daysOfMonth.length}
-                      </p>
-                      <p className="text-[11px] text-slate-600">
-                        exclusiones: {segment.exclusionDates.length}
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingSegmentId(segment.id)
-                          setEditName(segment.name)
-                          setEditDescription(segment.description)
-                          setEditStart(segment.startTime)
-                          setEditEnd(segment.endTime)
-                          setEditDates(segment.specificDates.join(','))
-                          setEditExclusions(segment.exclusionDates.join(','))
-                          setEditDaysWeek(segment.daysOfWeek.join(','))
-                          setEditDaysMonth(segment.daysOfMonth.join(','))
-                        }}
-                        className="mt-1 rounded border border-slate-300 px-2 py-1 text-[11px]"
-                      >
-                        Editar
-                      </button>
-                    </>
-                  )}
+                  <p className="text-xs font-semibold">{segment.name}</p>
+                  <p className="text-[11px] text-slate-600">
+                    {segment.startTime} - {segment.endTime}
+                  </p>
+                  <p className="text-[11px] text-slate-600">
+                    reglas:{' '}
+                    {segment.specificDates.length +
+                      segment.daysOfWeek.length +
+                      segment.daysOfMonth.length}
+                  </p>
+                  <p className="text-[11px] text-slate-600">
+                    exclusiones: {segment.exclusionDates.length}
+                  </p>
+                  <div className="mt-1 flex gap-1">
+                    <button
+                      type="button"
+                      onClick={() => startEditing(segment)}
+                      className="rounded border border-slate-300 px-2 py-1 text-[11px]"
+                    >
+                      {editingSegmentId === segment.id ? 'Editando...' : 'Editar'}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        const accepted = window.confirm('Deseas eliminar este segmento?')
+                        if (!accepted) return
+                        onDeleteSegment(segment.id)
+                        if (editingSegmentId === segment.id) {
+                          cancelEditing()
+                        }
+                      }}
+                      className="rounded border border-rose-300 px-2 py-1 text-[11px] text-rose-700"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
                 </div>
               ))
             )}
@@ -284,6 +253,9 @@ export function SegmentsScreen({
         </div>
 
         <div className="space-y-3 rounded-xl border border-slate-300 p-3">
+          <p className="text-sm font-semibold">
+            {editingSegmentId ? 'Editar segmento' : 'Crear segmento'}
+          </p>
           <div className="grid gap-2 md:grid-cols-2">
             <input value={segName} onChange={(e) => onSegNameChange(e.target.value)} placeholder="Nombre segmento" className="rounded border border-slate-300 px-3 py-2 text-sm" />
             <input value={segDescription} onChange={(e) => onSegDescriptionChange(e.target.value)} placeholder="Descripcion (opcional)" className="rounded border border-slate-300 px-3 py-2 text-sm" />
@@ -393,7 +365,20 @@ export function SegmentsScreen({
             ) : null}
           </div>
 
-          <button type="button" onClick={onAddSegment} disabled={busy} className="rounded bg-slate-900 px-4 py-2 text-sm font-semibold text-white">Agregar segmento</button>
+          <div className="flex gap-2">
+            <button type="button" onClick={submitSegment} disabled={busy} className="rounded bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
+              {editingSegmentId ? 'Guardar cambios' : 'Agregar segmento'}
+            </button>
+            {editingSegmentId ? (
+              <button
+                type="button"
+                onClick={cancelEditing}
+                className="rounded border border-slate-300 px-4 py-2 text-sm"
+              >
+                Cancelar edicion
+              </button>
+            ) : null}
+          </div>
           {error ? <p className="text-sm text-rose-600">{error}</p> : null}
         </div>
       </div>

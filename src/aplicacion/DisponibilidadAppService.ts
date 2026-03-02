@@ -6,10 +6,12 @@ import type { WorkspaceRepository } from '../dominio/puertos/WorkspaceRepository
 import { DomainEventPublisher } from '../dominio/servicios/DomainEventPublisher'
 import type { AddSegmentoTiempoCommand } from './commands/disponibilidad/AddSegmentoTiempoCommand'
 import type { CreateDisponibilidadCommand } from './commands/disponibilidad/CreateDisponibilidadCommand'
+import type { DeleteSegmentoTiempoCommand } from './commands/disponibilidad/DeleteSegmentoTiempoCommand'
 import type { UpdateSegmentoTiempoCommand } from './commands/disponibilidad/UpdateSegmentoTiempoCommand'
 import type { UpdateDisponibilidadCommand } from './commands/disponibilidad/UpdateDisponibilidadCommand'
 import { AddSegmentoTiempoUseCase } from './use_cases/disponibilidad/AddSegmentoTiempoUseCase'
 import { CreateDisponibilidadUseCase } from './use_cases/disponibilidad/CreateDisponibilidadUseCase'
+import { DeleteSegmentoTiempoUseCase } from './use_cases/disponibilidad/DeleteSegmentoTiempoUseCase'
 import { ListDisponibilidadesByWorkspaceUseCase } from './use_cases/disponibilidad/ListDisponibilidadesByWorkspaceUseCase'
 import { UpdateSegmentoTiempoUseCase } from './use_cases/disponibilidad/UpdateSegmentoTiempoUseCase'
 import { UpdateDisponibilidadUseCase } from './use_cases/disponibilidad/UpdateDisponibilidadUseCase'
@@ -17,6 +19,7 @@ import { UpdateDisponibilidadUseCase } from './use_cases/disponibilidad/UpdateDi
 export class DisponibilidadAppService {
   private readonly addSegmentoTiempoUseCase: AddSegmentoTiempoUseCase
   private readonly updateSegmentoTiempoUseCase: UpdateSegmentoTiempoUseCase
+  private readonly deleteSegmentoTiempoUseCase: DeleteSegmentoTiempoUseCase
   private readonly createDisponibilidadUseCase: CreateDisponibilidadUseCase
   private readonly updateDisponibilidadUseCase: UpdateDisponibilidadUseCase
   private readonly listDisponibilidadesByWorkspaceUseCase: ListDisponibilidadesByWorkspaceUseCase
@@ -37,6 +40,13 @@ export class DisponibilidadAppService {
       eventPublisher,
     )
     this.updateSegmentoTiempoUseCase = new UpdateSegmentoTiempoUseCase(
+      disponibilidadRepository,
+      projectRepository,
+      workspaceRepository,
+      unitOfWork,
+      eventPublisher,
+    )
+    this.deleteSegmentoTiempoUseCase = new DeleteSegmentoTiempoUseCase(
       disponibilidadRepository,
       projectRepository,
       workspaceRepository,
@@ -75,6 +85,10 @@ export class DisponibilidadAppService {
 
   updateSegment(command: UpdateSegmentoTiempoCommand) {
     return this.updateSegmentoTiempoUseCase.execute(command)
+  }
+
+  deleteSegment(command: DeleteSegmentoTiempoCommand) {
+    return this.deleteSegmentoTiempoUseCase.execute(command)
   }
 
   listByProject(projectId: string) {
