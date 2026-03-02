@@ -360,7 +360,7 @@ function App() {
           onTaskTitleChange={setForms.setTaskTitle}
           onTaskDescriptionChange={setForms.setTaskDescription}
           onTaskDurationChange={setForms.setTaskDuration}
-          onCreateTask={() => void actions.createTask()}
+          onCreateTask={(durationMinutes) => void actions.createTask(durationMinutes)}
           onUpdateTask={(taskId, data) => void actions.updateTask(taskId, data)}
           busy={state.busy}
           error={state.errors.task}

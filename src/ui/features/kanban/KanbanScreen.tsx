@@ -5,6 +5,11 @@ import type {
   TaskStatus,
   TaskVm,
 } from '../../types/AppUiModels'
+import {
+  evaluateHoursInput,
+  evaluateMinutesExpression,
+  normalizeDurationFromMinutes,
+} from './durationMath'
 
 const TASK_STATUSES: TaskStatus[] = ['PENDING', 'IN_PROGRESS', 'DONE', 'ABANDONED']
 const TIMELINE_ROW_HEIGHT = 24
@@ -16,7 +21,7 @@ type KanbanScreenProps = {
   onTaskTitleChange: (value: string) => void
   onTaskDescriptionChange: (value: string) => void
   onTaskDurationChange: (value: string) => void
-  onCreateTask: () => void
+  onCreateTask: (durationMinutes: number) => void
   onUpdateTask: (
     taskId: string,
     data: { title: string; description: string; durationMinutes: number },
@@ -252,11 +257,34 @@ export function KanbanScreen({
   onChangeStatus,
   onMoveTask,
 }: KanbanScreenProps) {
+  const initialCreateDuration = useMemo(() => {
+    const evaluated = evaluateMinutesExpression(taskDuration)
+    if (!evaluated.ok) return normalizeDurationFromMinutes(30)
+    return normalizeDurationFromMinutes(evaluated.minutes)
+  }, [taskDuration])
+
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
   const [editingDescription, setEditingDescription] = useState('')
-  const [editingDuration, setEditingDuration] = useState('30')
+  const [editingDurationMinutes, setEditingDurationMinutes] = useState('30')
+  const [editingDurationHours, setEditingDurationHours] = useState('0')
+  const [editingDurationError, setEditingDurationError] = useState<string | null>(null)
+  const [createDurationHours, setCreateDurationHours] = useState(
+    initialCreateDuration.hoursText,
+  )
+  const [createDurationError, setCreateDurationError] = useState<string | null>(null)
   const [menuOpenTaskId, setMenuOpenTaskId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const evaluated = evaluateMinutesExpression(taskDuration)
+    if (!evaluated.ok) {
+      setCreateDurationError(evaluated.error)
+      return
+    }
+    const normalized = normalizeDurationFromMinutes(evaluated.minutes)
+    setCreateDurationHours(normalized.hoursText)
+    setCreateDurationError(null)
+  }, [taskDuration])
 
   const taskById = useMemo(() => {
     const all = Object.values(kanban).flat()
@@ -280,24 +308,113 @@ export function KanbanScreen({
   }, [segmentBlocks, timeline])
 
   const onStartEdit = (task: TaskVm) => {
+    const normalized = normalizeDurationFromMinutes(task.durationMinutes)
     setEditingTaskId(task.id)
     setEditingTitle(task.title)
     setEditingDescription(task.description)
-    setEditingDuration(String(task.durationMinutes))
+    setEditingDurationMinutes(normalized.minutesText)
+    setEditingDurationHours(normalized.hoursText)
+    setEditingDurationError(null)
   }
 
   const onCancelEdit = () => {
     setEditingTaskId(null)
     setEditingTitle('')
     setEditingDescription('')
-    setEditingDuration('30')
+    setEditingDurationMinutes('30')
+    setEditingDurationHours('0')
+    setEditingDurationError(null)
+  }
+
+  const commitCreateMinutes = () => {
+    const evaluated = evaluateMinutesExpression(taskDuration)
+    if (!evaluated.ok) {
+      setCreateDurationError(evaluated.error)
+      return null
+    }
+    const normalized = normalizeDurationFromMinutes(evaluated.minutes)
+    onTaskDurationChange(normalized.minutesText)
+    setCreateDurationHours(normalized.hoursText)
+    setCreateDurationError(null)
+    return normalized.minutes
+  }
+
+  const onCreateTaskClick = () => {
+    const minutes = commitCreateMinutes()
+    if (minutes === null) return
+    onCreateTask(minutes)
+  }
+
+  const onCreateMinutesChange = (value: string) => {
+    onTaskDurationChange(value)
+    const evaluated = evaluateMinutesExpression(value)
+    if (!evaluated.ok) {
+      setCreateDurationError(evaluated.error)
+      return
+    }
+    const normalized = normalizeDurationFromMinutes(evaluated.minutes)
+    setCreateDurationHours(normalized.hoursText)
+    setCreateDurationError(null)
+  }
+
+  const onCreateHoursChange = (value: string) => {
+    setCreateDurationHours(value)
+    const evaluated = evaluateHoursInput(value)
+    if (!evaluated.ok) {
+      setCreateDurationError(evaluated.error)
+      return
+    }
+    const normalized = normalizeDurationFromMinutes(evaluated.minutes)
+    onTaskDurationChange(normalized.minutesText)
+    setCreateDurationHours(normalized.hoursText)
+    setCreateDurationError(null)
+  }
+
+  const commitEditingMinutes = () => {
+    const evaluated = evaluateMinutesExpression(editingDurationMinutes)
+    if (!evaluated.ok) {
+      setEditingDurationError(evaluated.error)
+      return null
+    }
+    const normalized = normalizeDurationFromMinutes(evaluated.minutes)
+    setEditingDurationMinutes(normalized.minutesText)
+    setEditingDurationHours(normalized.hoursText)
+    setEditingDurationError(null)
+    return normalized.minutes
+  }
+
+  const onEditingMinutesChange = (value: string) => {
+    setEditingDurationMinutes(value)
+    const evaluated = evaluateMinutesExpression(value)
+    if (!evaluated.ok) {
+      setEditingDurationError(evaluated.error)
+      return
+    }
+    const normalized = normalizeDurationFromMinutes(evaluated.minutes)
+    setEditingDurationHours(normalized.hoursText)
+    setEditingDurationError(null)
+  }
+
+  const onEditingHoursChange = (value: string) => {
+    setEditingDurationHours(value)
+    const evaluated = evaluateHoursInput(value)
+    if (!evaluated.ok) {
+      setEditingDurationError(evaluated.error)
+      return
+    }
+    const normalized = normalizeDurationFromMinutes(evaluated.minutes)
+    setEditingDurationMinutes(normalized.minutesText)
+    setEditingDurationHours(normalized.hoursText)
+    setEditingDurationError(null)
   }
 
   const onSaveEdit = (taskId: string) => {
+    const minutes = commitEditingMinutes()
+    if (minutes === null) return
     onUpdateTask(taskId, {
       title: editingTitle,
       description: editingDescription,
-      durationMinutes: Number(editingDuration),
+      durationMinutes: minutes,
     })
     onCancelEdit()
   }
@@ -309,7 +426,7 @@ export function KanbanScreen({
   return (
     <section className="rounded-2xl border border-slate-300 bg-white p-4">
       <h1 className="text-lg font-semibold">Kanban</h1>
-      <div className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_140px_auto]">
+      <div className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_140px_120px_auto]">
         <input
           value={taskTitle}
           onChange={(event) => onTaskTitleChange(event.target.value)}
@@ -323,21 +440,36 @@ export function KanbanScreen({
           className="rounded border border-slate-300 px-3 py-2 text-sm"
         />
         <input
-          type="number"
-          min={1}
+          type="text"
           value={taskDuration}
-          onChange={(event) => onTaskDurationChange(event.target.value)}
+          onChange={(event) => onCreateMinutesChange(event.target.value)}
+          onBlur={commitCreateMinutes}
+          onKeyDown={(event) => {
+            if (event.key !== 'Enter') return
+            event.preventDefault()
+            commitCreateMinutes()
+          }}
+          placeholder="Minutos (ej: 3*60)"
+          className="rounded border border-slate-300 px-3 py-2 text-sm"
+        />
+        <input
+          type="text"
+          value={createDurationHours}
+          onChange={(event) => onCreateHoursChange(event.target.value)}
+          placeholder="Horas"
           className="rounded border border-slate-300 px-3 py-2 text-sm"
         />
         <button
           type="button"
-          onClick={onCreateTask}
-          disabled={busy}
+          onClick={onCreateTaskClick}
+          disabled={busy || Boolean(createDurationError)}
           className="rounded bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
         >
           Crear tarea
         </button>
       </div>
+
+      {createDurationError ? <p className="mt-2 text-sm text-rose-600">{createDurationError}</p> : null}
 
       {error ? <p className="mt-2 text-sm text-rose-600">{error}</p> : null}
 
@@ -514,13 +646,31 @@ export function KanbanScreen({
                 rows={4}
                 className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
               />
-              <input
-                type="number"
-                min={1}
-                value={editingDuration}
-                onChange={(event) => setEditingDuration(event.target.value)}
-                className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
-              />
+              <div className="grid gap-2 md:grid-cols-2">
+                <input
+                  type="text"
+                  value={editingDurationMinutes}
+                  onChange={(event) => onEditingMinutesChange(event.target.value)}
+                  onBlur={commitEditingMinutes}
+                  onKeyDown={(event) => {
+                    if (event.key !== 'Enter') return
+                    event.preventDefault()
+                    commitEditingMinutes()
+                  }}
+                  placeholder="Minutos (ej: 3*60)"
+                  className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                />
+                <input
+                  type="text"
+                  value={editingDurationHours}
+                  onChange={(event) => onEditingHoursChange(event.target.value)}
+                  placeholder="Horas"
+                  className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                />
+              </div>
+              {editingDurationError ? (
+                <p className="text-sm text-rose-600">{editingDurationError}</p>
+              ) : null}
             </div>
             <div className="mt-4 flex justify-end gap-2">
               <button
@@ -532,7 +682,7 @@ export function KanbanScreen({
               </button>
               <button
                 type="button"
-                disabled={busy}
+                disabled={busy || Boolean(editingDurationError)}
                 onClick={() => onSaveEdit(editingTaskId)}
                 className="rounded bg-slate-900 px-3 py-2 text-sm font-semibold text-white"
               >
