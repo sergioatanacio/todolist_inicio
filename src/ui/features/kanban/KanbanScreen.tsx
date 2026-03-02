@@ -77,10 +77,12 @@ function TaskMenu({
   task,
   onChangeStatus,
   onEdit,
+  onOpenChange,
 }: {
   task: TaskVm
   onChangeStatus: (taskId: string, toStatus: TaskStatus) => void
   onEdit: (task: TaskVm) => void
+  onOpenChange?: (isOpen: boolean) => void
 }) {
   const [open, setOpen] = useState(false)
 
@@ -89,7 +91,13 @@ function TaskMenu({
       <button
         type="button"
         className="rounded border border-slate-300 bg-white px-1.5 py-0.5 text-xs"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() =>
+          setOpen((value) => {
+            const next = !value
+            onOpenChange?.(next)
+            return next
+          })
+        }
       >
         ...
       </button>
@@ -103,6 +111,7 @@ function TaskMenu({
               onClick={() => {
                 onChangeStatus(task.id, next)
                 setOpen(false)
+                onOpenChange?.(false)
               }}
             >
               Mover a {next}
@@ -114,6 +123,7 @@ function TaskMenu({
             onClick={() => {
               onEdit(task)
               setOpen(false)
+              onOpenChange?.(false)
             }}
           >
             Editar
@@ -138,6 +148,8 @@ function TimelineTaskCard({
   onCancelEdit,
   onStartEdit,
   onChangeStatus,
+  isMenuOpen,
+  onMenuOpenChange,
 }: {
   item: KanbanTimelineScheduledItemVm
   rowHeight: number
@@ -152,6 +164,8 @@ function TimelineTaskCard({
   onCancelEdit: () => void
   onStartEdit: (task: TaskVm) => void
   onChangeStatus: (taskId: string, toStatus: TaskStatus) => void
+  isMenuOpen: boolean
+  onMenuOpenChange: (isOpen: boolean) => void
 }) {
   const top = item.rowStart * rowHeight + 4
   const height = Math.max(item.rowSpan * rowHeight - 8, 48)
@@ -166,7 +180,9 @@ function TimelineTaskCard({
 
   return (
     <div
-      className="absolute left-2 right-2 z-20 rounded border border-blue-400 bg-slate-100 p-2"
+      className={`absolute left-2 right-2 rounded border border-blue-400 bg-slate-100 p-2 ${
+        isMenuOpen ? 'z-50' : 'z-20'
+      }`}
       style={{ top, height }}
     >
       {editingTaskId === taskView.id ? (
@@ -205,7 +221,12 @@ function TimelineTaskCard({
         <>
           <div className="flex items-start justify-between gap-2">
             <p className="text-xs font-semibold">{taskView.title}</p>
-            <TaskMenu task={taskView} onChangeStatus={onChangeStatus} onEdit={onStartEdit} />
+            <TaskMenu
+              task={taskView}
+              onChangeStatus={onChangeStatus}
+              onEdit={onStartEdit}
+              onOpenChange={onMenuOpenChange}
+            />
           </div>
           <p className="text-[11px]">
             {taskView.durationMinutes} min | {item.segmentName ?? '-'}
@@ -235,6 +256,7 @@ export function KanbanScreen({
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
   const [editingDuration, setEditingDuration] = useState('30')
+  const [menuOpenTaskId, setMenuOpenTaskId] = useState<string | null>(null)
 
   const taskById = useMemo(() => {
     const all = Object.values(kanban).flat()
@@ -366,6 +388,10 @@ export function KanbanScreen({
                       onCancelEdit={onCancelEdit}
                       onStartEdit={onStartEdit}
                       onChangeStatus={onChangeStatus}
+                      isMenuOpen={menuOpenTaskId === item.taskId}
+                      onMenuOpenChange={(isOpen) =>
+                        setMenuOpenTaskId(isOpen ? item.taskId : null)
+                      }
                     />
                   ))}
                 </div>
@@ -387,6 +413,10 @@ export function KanbanScreen({
                       onCancelEdit={onCancelEdit}
                       onStartEdit={onStartEdit}
                       onChangeStatus={onChangeStatus}
+                      isMenuOpen={menuOpenTaskId === item.taskId}
+                      onMenuOpenChange={(isOpen) =>
+                        setMenuOpenTaskId(isOpen ? item.taskId : null)
+                      }
                     />
                   ))}
                 </div>
