@@ -174,6 +174,7 @@ function App() {
       onLogout={actions.logout}
       sidebar={
         <AppSidebar
+          route={state.route}
           workspaceId={workspaceId}
           projectId={projectId}
           onGoWorkspaces={() => actions.navigate('/app/workspaces')}

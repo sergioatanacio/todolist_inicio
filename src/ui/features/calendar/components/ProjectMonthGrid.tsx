@@ -25,22 +25,36 @@ export function ProjectMonthGrid({
       <div className="grid grid-cols-7 gap-2">
         {cells.map((cell) => {
           const active = selectedDay === cell.isoDate
+          const hasTasks = cell.taskCount > 0
+          const baseClass = cell.inCurrentMonth
+            ? 'border-slate-300 bg-white'
+            : 'border-slate-200 bg-slate-50 text-slate-400'
+          const taskClass = hasTasks
+            ? cell.inCurrentMonth
+              ? 'border-emerald-300 bg-emerald-50'
+              : 'border-emerald-200 bg-emerald-50/60 text-slate-500'
+            : ''
+          const activeClass = active
+            ? hasTasks
+              ? 'border-emerald-700 bg-emerald-100 ring-1 ring-emerald-700'
+              : 'border-slate-900 bg-slate-100 ring-1 ring-slate-900'
+            : ''
           return (
             <button
               key={cell.key}
               type="button"
               onClick={() => onSelectDay(cell.isoDate)}
-              className={`min-h-20 rounded border p-2 text-left ${
-                active
-                  ? 'border-slate-900 bg-slate-100'
-                  : cell.inCurrentMonth
-                    ? 'border-slate-300 bg-white'
-                    : 'border-slate-200 bg-slate-50 text-slate-400'
-              }`}
+              className={`min-h-20 rounded border p-2 text-left ${baseClass} ${taskClass} ${activeClass}`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold">{cell.dayNumber}</span>
-                <span className="text-[10px] text-slate-600">{cell.taskCount} bloques</span>
+                <span
+                  className={`text-[10px] ${
+                    hasTasks ? 'font-semibold text-emerald-700' : 'text-slate-600'
+                  }`}
+                >
+                  {cell.taskCount} bloques
+                </span>
               </div>
               {cell.previewTitles.length > 0 ? (
                 <div className="mt-1 space-y-0.5">
