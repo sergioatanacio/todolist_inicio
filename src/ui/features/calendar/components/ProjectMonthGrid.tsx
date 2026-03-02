@@ -58,8 +58,8 @@ export function ProjectMonthGrid({
               </div>
               {cell.previewTitles.length > 0 ? (
                 <div className="mt-1 space-y-0.5">
-                  {cell.previewTitles.map((title) => (
-                    <p key={`${cell.isoDate}-${title}`} className="truncate text-[10px] text-slate-700">
+                  {cell.previewTitles.map((title, index) => (
+                    <p key={`${cell.isoDate}-${index}-${title}`} className="truncate text-[10px] text-slate-700">
                       {title}
                     </p>
                   ))}

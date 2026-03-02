@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type {
   KanbanTimelineScheduledItemVm,
   KanbanTimelineVm,
@@ -77,27 +77,39 @@ function TaskMenu({
   task,
   onChangeStatus,
   onEdit,
+  isOpen,
   onOpenChange,
 }: {
   task: TaskVm
   onChangeStatus: (taskId: string, toStatus: TaskStatus) => void
   onEdit: (task: TaskVm) => void
+  isOpen?: boolean
   onOpenChange?: (isOpen: boolean) => void
 }) {
-  const [open, setOpen] = useState(false)
+  const [openInternal, setOpenInternal] = useState(false)
+  const controlled = typeof isOpen === 'boolean'
+  const open = controlled ? isOpen : openInternal
+
+  useEffect(() => {
+    if (!controlled) onOpenChange?.(open)
+  }, [controlled, onOpenChange, open])
+
+  const setOpen = (next: boolean | ((current: boolean) => boolean)) => {
+    const current = open
+    const nextValue = typeof next === 'function' ? next(current) : next
+    if (controlled) {
+      onOpenChange?.(nextValue)
+      return
+    }
+    setOpenInternal(nextValue)
+  }
 
   return (
     <div className="relative">
       <button
         type="button"
         className="rounded border border-slate-300 bg-white px-1.5 py-0.5 text-xs"
-        onClick={() =>
-          setOpen((value) => {
-            const next = !value
-            onOpenChange?.(next)
-            return next
-          })
-        }
+        onClick={() => setOpen((value) => !value)}
       >
         ...
       </button>
@@ -111,7 +123,6 @@ function TaskMenu({
               onClick={() => {
                 onChangeStatus(task.id, next)
                 setOpen(false)
-                onOpenChange?.(false)
               }}
             >
               Mover a {next}
@@ -123,7 +134,6 @@ function TaskMenu({
             onClick={() => {
               onEdit(task)
               setOpen(false)
-              onOpenChange?.(false)
             }}
           >
             Editar
@@ -225,6 +235,7 @@ function TimelineTaskCard({
               task={taskView}
               onChangeStatus={onChangeStatus}
               onEdit={onStartEdit}
+              isOpen={isMenuOpen}
               onOpenChange={onMenuOpenChange}
             />
           </div>
