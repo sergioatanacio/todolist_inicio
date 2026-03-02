@@ -326,6 +326,7 @@ function App() {
           onUpdateSegment={(segmentId, data) =>
             void actions.updateSegment(segmentId, data)
           }
+          onDeleteSegment={(segmentId) => void actions.deleteSegment(segmentId)}
           busy={state.busy}
           error={state.errors.segment}
         />

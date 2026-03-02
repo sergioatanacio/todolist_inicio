@@ -53,6 +53,7 @@ export type AppController = {
         daysOfMonth: string
       },
     ) => Promise<void>
+    deleteSegment: (segmentId: string) => Promise<void>
     updateDisponibilidad: (
       disponibilidadId: string,
       data: {
@@ -494,6 +495,27 @@ export const useAppController = (): AppController => {
       loaders.loadProjectContext(services, context.projectId)
     } catch (error) {
       setError('segment', error instanceof Error ? error.message : 'No se pudo editar segmento.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const deleteSegment = async (segmentId: string) => {
+    const services = servicesRef.current
+    const targetDisponibilidadId = context.disponibilidadId ?? forms.selectedDispId
+    if (!services || userId === null || !context.projectId || !targetDisponibilidadId) return
+    setBusy(true)
+    setError('segment', null)
+    try {
+      await services.disponibilidad.deleteSegment({
+        projectId: context.projectId,
+        disponibilidadId: targetDisponibilidadId,
+        segmentId,
+        actorUserId: userId,
+      })
+      loaders.loadProjectContext(services, context.projectId)
+    } catch (error) {
+      setError('segment', error instanceof Error ? error.message : 'No se pudo eliminar segmento.')
     } finally {
       setBusy(false)
     }
@@ -960,6 +982,7 @@ export const useAppController = (): AppController => {
       updateProject,
       createDisponibilidad,
       updateSegment,
+      deleteSegment,
       updateDisponibilidad,
       addSegment,
       createList,
