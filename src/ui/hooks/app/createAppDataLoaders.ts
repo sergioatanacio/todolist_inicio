@@ -86,24 +86,28 @@ export const createAppDataLoaders = (deps: LoaderDependencies) => {
         title: task.title,
         status: task.status,
         durationMinutes: task.durationMinutes,
+        orderInList: task.orderInList,
       })),
       IN_PROGRESS: data.IN_PROGRESS.map((task) => ({
         id: task.id,
         title: task.title,
         status: task.status,
         durationMinutes: task.durationMinutes,
+        orderInList: task.orderInList,
       })),
       DONE: data.DONE.map((task) => ({
         id: task.id,
         title: task.title,
         status: task.status,
         durationMinutes: task.durationMinutes,
+        orderInList: task.orderInList,
       })),
       ABANDONED: data.ABANDONED.map((task) => ({
         id: task.id,
         title: task.title,
         status: task.status,
         durationMinutes: task.durationMinutes,
+        orderInList: task.orderInList,
       })),
     })
     deps.setKanbanTimeline({

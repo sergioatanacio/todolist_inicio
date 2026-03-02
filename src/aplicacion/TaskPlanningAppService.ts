@@ -65,9 +65,11 @@ export class TaskPlanningAppService {
     this.reorderTasksInTodoListUseCase = new ReorderTasksInTodoListUseCase(
       taskRepository,
       todoListRepository,
+      disponibilidadRepository,
       projectRepository,
       workspaceRepository,
       unitOfWork,
+      policy,
     )
     this.createTaskUseCase = new CreateTaskUseCase(
       taskRepository,

@@ -367,6 +367,9 @@ function App() {
           onChangeStatus={(taskId, toStatus) =>
             void actions.changeStatus(taskId, toStatus)
           }
+          onMoveTask={(taskId, direction) =>
+            void actions.moveTaskInStatus(taskId, direction)
+          }
         />
       ) : null}
 

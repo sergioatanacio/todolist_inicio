@@ -24,6 +24,7 @@ type KanbanScreenProps = {
   kanban: Record<TaskStatus, TaskVm[]>
   timeline: KanbanTimelineVm | null
   onChangeStatus: (taskId: string, toStatus: TaskStatus) => void
+  onMoveTask: (taskId: string, direction: 'up' | 'down') => void
 }
 
 type SegmentBlock = {
@@ -77,12 +78,14 @@ function TaskMenu({
   task,
   onChangeStatus,
   onEdit,
+  onMoveTask,
   isOpen,
   onOpenChange,
 }: {
   task: TaskVm
   onChangeStatus: (taskId: string, toStatus: TaskStatus) => void
   onEdit: (task: TaskVm) => void
+  onMoveTask: (taskId: string, direction: 'up' | 'down') => void
   isOpen?: boolean
   onOpenChange?: (isOpen: boolean) => void
 }) {
@@ -115,6 +118,26 @@ function TaskMenu({
       </button>
       {open ? (
         <div className="absolute right-0 top-6 z-40 min-w-[130px] rounded border border-slate-300 bg-white p-1 shadow">
+          <button
+            type="button"
+            className="mb-1 block w-full rounded px-2 py-1 text-left text-[11px] hover:bg-slate-100"
+            onClick={() => {
+              onMoveTask(task.id, 'up')
+              setOpen(false)
+            }}
+          >
+            Mover arriba
+          </button>
+          <button
+            type="button"
+            className="mb-1 block w-full rounded px-2 py-1 text-left text-[11px] hover:bg-slate-100"
+            onClick={() => {
+              onMoveTask(task.id, 'down')
+              setOpen(false)
+            }}
+          >
+            Mover abajo
+          </button>
           {TASK_STATUSES.filter((next) => next !== task.status).map((next) => (
             <button
               key={next}
@@ -158,6 +181,7 @@ function TimelineTaskCard({
   onCancelEdit,
   onStartEdit,
   onChangeStatus,
+  onMoveTask,
   isMenuOpen,
   onMenuOpenChange,
 }: {
@@ -174,6 +198,7 @@ function TimelineTaskCard({
   onCancelEdit: () => void
   onStartEdit: (task: TaskVm) => void
   onChangeStatus: (taskId: string, toStatus: TaskStatus) => void
+  onMoveTask: (taskId: string, direction: 'up' | 'down') => void
   isMenuOpen: boolean
   onMenuOpenChange: (isOpen: boolean) => void
 }) {
@@ -186,6 +211,7 @@ function TimelineTaskCard({
       title: item.title,
       status: item.status,
       durationMinutes: item.durationMinutes,
+      orderInList: item.orderInList,
     } satisfies TaskVm)
 
   return (
@@ -235,6 +261,7 @@ function TimelineTaskCard({
               task={taskView}
               onChangeStatus={onChangeStatus}
               onEdit={onStartEdit}
+              onMoveTask={onMoveTask}
               isOpen={isMenuOpen}
               onOpenChange={onMenuOpenChange}
             />
@@ -263,6 +290,7 @@ export function KanbanScreen({
   kanban,
   timeline,
   onChangeStatus,
+  onMoveTask,
 }: KanbanScreenProps) {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
@@ -399,6 +427,7 @@ export function KanbanScreen({
                       onCancelEdit={onCancelEdit}
                       onStartEdit={onStartEdit}
                       onChangeStatus={onChangeStatus}
+                      onMoveTask={onMoveTask}
                       isMenuOpen={menuOpenTaskId === item.taskId}
                       onMenuOpenChange={(isOpen) =>
                         setMenuOpenTaskId(isOpen ? item.taskId : null)
@@ -424,6 +453,7 @@ export function KanbanScreen({
                       onCancelEdit={onCancelEdit}
                       onStartEdit={onStartEdit}
                       onChangeStatus={onChangeStatus}
+                      onMoveTask={onMoveTask}
                       isMenuOpen={menuOpenTaskId === item.taskId}
                       onMenuOpenChange={(isOpen) =>
                         setMenuOpenTaskId(isOpen ? item.taskId : null)
@@ -438,7 +468,12 @@ export function KanbanScreen({
                       <div key={task.id} className="rounded border border-slate-300 bg-slate-100 p-2">
                         <div className="flex items-start justify-between gap-2">
                           <p className="text-xs font-semibold">{task.title}</p>
-                          <TaskMenu task={task} onChangeStatus={onChangeStatus} onEdit={onStartEdit} />
+                          <TaskMenu
+                            task={task}
+                            onChangeStatus={onChangeStatus}
+                            onEdit={onStartEdit}
+                            onMoveTask={onMoveTask}
+                          />
                         </div>
                         <p className="text-[11px]">{task.durationMinutes} min</p>
                       </div>
@@ -452,7 +487,12 @@ export function KanbanScreen({
                       <div key={task.id} className="rounded border border-slate-300 bg-slate-100 p-2">
                         <div className="flex items-start justify-between gap-2">
                           <p className="text-xs font-semibold">{task.title}</p>
-                          <TaskMenu task={task} onChangeStatus={onChangeStatus} onEdit={onStartEdit} />
+                          <TaskMenu
+                            task={task}
+                            onChangeStatus={onChangeStatus}
+                            onEdit={onStartEdit}
+                            onMoveTask={onMoveTask}
+                          />
                         </div>
                         <p className="text-[11px]">{task.durationMinutes} min</p>
                       </div>

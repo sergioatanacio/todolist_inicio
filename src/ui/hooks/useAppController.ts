@@ -14,7 +14,7 @@ import {
   navigate,
   parseRoute,
 } from '../router/AppRoute'
-import type { AppControllerState, TaskStatus } from '../types/AppUiModels'
+import type { AppControllerState, TaskStatus, TaskVm } from '../types/AppUiModels'
 
 const SESSION_KEY = 'todo_user_id'
 const parseCsvStrings = (value: string) =>
@@ -72,6 +72,7 @@ export type AppController = {
       data: { title: string; durationMinutes: number },
     ) => Promise<void>
     changeStatus: (taskId: string, toStatus: TaskStatus) => Promise<void>
+    moveTaskInStatus: (taskId: string, direction: 'up' | 'down') => Promise<void>
     createAiAgent: () => Promise<void>
     setAiAgentState: (
       agentId: string,
@@ -655,6 +656,72 @@ export const useAppController = (): AppController => {
     }
   }
 
+  const moveTaskInStatus = async (taskId: string, direction: 'up' | 'down') => {
+    const services = servicesRef.current
+    if (!services || userId === null || !context.workspaceId || !context.projectId || !context.listId) {
+      return
+    }
+
+    const allTasks = Object.values(data.kanban)
+      .flat()
+      .slice()
+      .sort((a, b) => a.orderInList - b.orderInList)
+    const sourceTask = allTasks.find((task) => task.id === taskId)
+    if (!sourceTask) return
+
+    const statusTasks = allTasks
+      .filter((task) => task.status === sourceTask.status)
+      .sort((a, b) => a.orderInList - b.orderInList)
+    const statusIndex = statusTasks.findIndex((task) => task.id === taskId)
+    if (statusIndex < 0) return
+
+    const targetIndex = direction === 'up' ? statusIndex - 1 : statusIndex + 1
+    if (targetIndex < 0 || targetIndex >= statusTasks.length) return
+
+    const reorderedStatusTasks = statusTasks.slice()
+    const current = reorderedStatusTasks[statusIndex]
+    reorderedStatusTasks[statusIndex] = reorderedStatusTasks[targetIndex]
+    reorderedStatusTasks[targetIndex] = current
+
+    const reorderedQueue: TaskVm[] = []
+    const reorderedStatusMap = new Map(
+      reorderedStatusTasks.map((task, index) => [task.id, index]),
+    )
+    let statusCursor = 0
+    for (const task of allTasks) {
+      if (task.status !== sourceTask.status) {
+        reorderedQueue.push(task)
+        continue
+      }
+      const nextTask = reorderedStatusTasks[statusCursor]
+      if (!nextTask || !reorderedStatusMap.has(task.id)) {
+        reorderedQueue.push(task)
+        continue
+      }
+      reorderedQueue.push(nextTask)
+      statusCursor += 1
+    }
+
+    const orderedTaskIds = reorderedQueue.map((task) => task.id)
+
+    setBusy(true)
+    setError('task', null)
+    try {
+      await services.taskPlanning.reorderTasksInTodoList({
+        workspaceId: context.workspaceId,
+        projectId: context.projectId,
+        actorUserId: userId,
+        todoListId: context.listId,
+        orderedTaskIds,
+      })
+      loaders.loadKanban(services, context.listId)
+    } catch (error) {
+      setError('task', error instanceof Error ? error.message : 'No se pudo reordenar tarea.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const createAiAgent = async () => {
     const services = servicesRef.current
     if (!services || userId === null || !context.workspaceId) return
@@ -990,6 +1057,7 @@ export const useAppController = (): AppController => {
       createTask,
       updateTask,
       changeStatus,
+      moveTaskInStatus,
       createAiAgent,
       setAiAgentState,
       deleteAiAgent,
