@@ -256,6 +256,7 @@ function App() {
           onPauseAgent={(agentId) => void actions.setAiAgentState(agentId, 'pause')}
           onActivateAgent={(agentId) => void actions.setAiAgentState(agentId, 'activate')}
           onRevokeAgent={(agentId) => void actions.setAiAgentState(agentId, 'revoke')}
+          onDeleteAgent={(agentId) => void actions.deleteAiAgent(agentId)}
           onRegisterCredential={() => void actions.registerAiCredential()}
           onRotateCredential={() => void actions.rotateAiCredential()}
           onRevokeCredential={() => void actions.revokeAiCredential()}
