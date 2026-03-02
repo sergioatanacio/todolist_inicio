@@ -17,6 +17,7 @@ import { schedulingPolicySpec } from './SchedulingPolicy.spec.ts'
 import { greedySchedulingStrategySpec } from './GreedySchedulingStrategy.spec.ts'
 import { schedulingPolicyDelegationSpec } from './SchedulingPolicyDelegation.spec.ts'
 import { schedulingStrategyContractSpec } from './SchedulingStrategyContract.spec.ts'
+import { kanbanTimelineServiceSpec } from './KanbanTimelineService.spec.ts'
 import { domainEventPublisherSpec } from './DomainEventPublisher.spec.ts'
 import { workspaceAggregateSpec } from './WorkspaceAggregate.spec.ts'
 import { workspaceConversationAggregateSpec } from './WorkspaceConversationAggregate.spec.ts'
@@ -45,6 +46,7 @@ export const runDomainSpecs = async () => {
   greedySchedulingStrategySpec()
   schedulingPolicyDelegationSpec()
   schedulingStrategyContractSpec()
+  kanbanTimelineServiceSpec()
   await domainEventPublisherSpec()
   workspaceMemberStateMachineSpec()
   workspaceOwnershipStateMachineSpec()
