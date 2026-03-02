@@ -336,11 +336,11 @@ export function KanbanScreen({
         <div className="mt-3 overflow-hidden rounded border border-slate-300">
           <div>
             <div className="grid grid-cols-[220px_1fr_1fr_1fr_1fr] border-b border-slate-300 bg-slate-50">
-              <div className="border-r border-slate-300 px-3 py-2 text-4xl font-bold leading-none">Segmentos</div>
-              <div className="border-r border-slate-300 px-3 py-2 text-4xl font-bold leading-none">PENDIENTE</div>
-              <div className="border-r border-slate-300 px-3 py-2 text-4xl font-bold leading-none">PROGRESO</div>
-              <div className="border-r border-slate-300 px-3 py-2 text-4xl font-bold leading-none">TERMINADO</div>
-              <div className="px-3 py-2 text-4xl font-bold leading-none">ABANDONADO</div>
+              <div className="flex h-11 items-center justify-center border-r border-slate-300 px-3 text-lg font-semibold leading-none">Segmentos</div>
+              <div className="flex h-11 items-center justify-center border-r border-slate-300 px-3 text-lg font-semibold leading-none">PENDIENTE</div>
+              <div className="flex h-11 items-center justify-center border-r border-slate-300 px-3 text-lg font-semibold leading-none">PROGRESO</div>
+              <div className="flex h-11 items-center justify-center border-r border-slate-300 px-3 text-lg font-semibold leading-none">TERMINADO</div>
+              <div className="flex h-11 items-center justify-center px-3 text-lg font-semibold leading-none">ABANDONADO</div>
             </div>
 
             <div className="relative" style={{ height: timelineHeight }}>
