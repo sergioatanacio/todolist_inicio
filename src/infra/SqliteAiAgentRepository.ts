@@ -72,4 +72,11 @@ export class SqliteAiAgentRepository implements AiAgentRepository {
     stmt.free()
     void this.persist(this.db)
   }
+
+  delete(agentId: string) {
+    const stmt = this.db.prepare('DELETE FROM ai_agents WHERE id = ?')
+    stmt.run([agentId])
+    stmt.free()
+    void this.persist(this.db)
+  }
 }

@@ -27,14 +27,21 @@ const mapMessage = (message: AiChatMessageInput) => ({
 const defaultToolDescription = (intent: string) =>
   `Execute intent ${intent} with JSON arguments.`
 
+const isValidToolName = (name: string) => /^[A-Za-z0-9_-]{1,64}$/.test(name)
+
+const normalizeAllowedIntents = (allowedIntents: readonly string[]) =>
+  [...new Set(allowedIntents.map((item) => item.trim()))].filter(isValidToolName)
+
 const buildTools = (allowedIntents: readonly string[]) =>
-  allowedIntents.map((intent) => ({
+  normalizeAllowedIntents(allowedIntents).map((intent) => ({
     type: 'function',
     function: {
       name: intent,
       description: defaultToolDescription(intent),
       parameters: {
         type: 'object',
+        properties: {},
+        required: [],
         additionalProperties: true,
       },
     },
@@ -53,11 +60,16 @@ export class OpenAiChatGateway implements AiChatGateway {
     messages: AiChatMessageInput[]
     allowedIntents: string[]
   }): Promise<AiChatResult> {
+    const tools = buildTools(data.allowedIntents)
     const payload = {
       model: data.model,
       messages: data.messages.map(mapMessage),
-      tools: buildTools(data.allowedIntents),
-      tool_choice: 'auto' as const,
+      ...(tools.length > 0
+        ? {
+            tools,
+            tool_choice: 'auto' as const,
+          }
+        : {}),
     }
 
     const response = await this.requestWithRetry(
@@ -121,7 +133,13 @@ export class OpenAiChatGateway implements AiChatGateway {
         throw domainError('CONFLICT', 'Proveedor IA en rate limit')
       }
       if (!res.ok) {
-        throw domainError('CONFLICT', `Proveedor IA error HTTP ${res.status}`)
+        const detail = await this.readErrorDetail(res)
+        throw domainError(
+          'CONFLICT',
+          detail
+            ? `Proveedor IA error HTTP ${res.status}: ${detail}`
+            : `Proveedor IA error HTTP ${res.status}`,
+        )
       }
 
       const json = (await res.json()) as OpenAiChatResponse
@@ -134,6 +152,37 @@ export class OpenAiChatGateway implements AiChatGateway {
       throw domainError('CONFLICT', 'Fallo de red con proveedor IA')
     } finally {
       clearTimeout(timeout)
+    }
+  }
+
+  private async readErrorDetail(res: Response): Promise<string> {
+    try {
+      const contentType = res.headers.get('content-type') ?? ''
+      if (contentType.includes('application/json')) {
+        const json = (await res.json()) as {
+          error?: {
+            message?: unknown
+            type?: unknown
+            param?: unknown
+            code?: unknown
+          }
+        }
+        const message =
+          json.error?.message && typeof json.error.message === 'string'
+            ? json.error.message
+            : ''
+        const parts = [json.error?.code, json.error?.param, json.error?.type].filter(
+          (item): item is string => typeof item === 'string' && item.length > 0,
+        )
+        if (message && parts.length > 0) return `${message} (${parts.join(', ')})`
+        if (message) return message
+        if (parts.length > 0) return parts.join(', ')
+        return ''
+      }
+      const text = (await res.text()).trim()
+      return text
+    } catch {
+      return ''
     }
   }
 }

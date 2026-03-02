@@ -141,6 +141,9 @@ class InMemoryAiAgentRepository implements AiAgentRepository {
   save(agent: AiAgentAggregate) {
     this.store.set(agent.id, agent)
   }
+  delete(agentId: string) {
+    this.store.delete(agentId)
+  }
 }
 
 class InMemoryAiConversationRepository implements AiConversationRepository {

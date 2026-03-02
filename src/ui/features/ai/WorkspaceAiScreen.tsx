@@ -25,6 +25,7 @@ type WorkspaceAiScreenProps = {
   onPauseAgent: (agentId: string) => void
   onActivateAgent: (agentId: string) => void
   onRevokeAgent: (agentId: string) => void
+  onDeleteAgent: (agentId: string) => void
   onRegisterCredential: () => void
   onRotateCredential: () => void
   onRevokeCredential: () => void
@@ -52,6 +53,7 @@ export function WorkspaceAiScreen(props: WorkspaceAiScreenProps) {
         onPauseAgent={props.onPauseAgent}
         onActivateAgent={props.onActivateAgent}
         onRevokeAgent={props.onRevokeAgent}
+        onDeleteAgent={props.onDeleteAgent}
         busy={props.busy}
       />
       <UserCredentialPanel
