@@ -426,7 +426,7 @@ export function KanbanScreen({
   return (
     <section className="rounded-2xl border border-slate-300 bg-white p-4">
       <h1 className="text-lg font-semibold">Kanban</h1>
-      <div className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_140px_120px_auto]">
+      <div className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_120px_160px_auto]">
         <input
           value={taskTitle}
           onChange={(event) => onTaskTitleChange(event.target.value)}
@@ -439,26 +439,32 @@ export function KanbanScreen({
           placeholder="Descripcion tarea"
           className="rounded border border-slate-300 px-3 py-2 text-sm"
         />
-        <input
-          type="text"
-          value={taskDuration}
-          onChange={(event) => onCreateMinutesChange(event.target.value)}
-          onBlur={commitCreateMinutes}
-          onKeyDown={(event) => {
-            if (event.key !== 'Enter') return
-            event.preventDefault()
-            commitCreateMinutes()
-          }}
-          placeholder="Minutos (ej: 3*60)"
-          className="rounded border border-slate-300 px-3 py-2 text-sm"
-        />
-        <input
-          type="text"
-          value={createDurationHours}
-          onChange={(event) => onCreateHoursChange(event.target.value)}
-          placeholder="Horas"
-          className="rounded border border-slate-300 px-3 py-2 text-sm"
-        />
+        <div>
+          <p className="mb-1 text-xs font-medium text-slate-600">Horas</p>
+          <input
+            type="text"
+            value={createDurationHours}
+            onChange={(event) => onCreateHoursChange(event.target.value)}
+            placeholder="Horas"
+            className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <p className="mb-1 text-xs font-medium text-slate-600">Minutos</p>
+          <input
+            type="text"
+            value={taskDuration}
+            onChange={(event) => onCreateMinutesChange(event.target.value)}
+            onBlur={commitCreateMinutes}
+            onKeyDown={(event) => {
+              if (event.key !== 'Enter') return
+              event.preventDefault()
+              commitCreateMinutes()
+            }}
+            placeholder="Minutos (ej: 3*60)"
+            className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+          />
+        </div>
         <button
           type="button"
           onClick={onCreateTaskClick}
@@ -647,26 +653,32 @@ export function KanbanScreen({
                 className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
               />
               <div className="grid gap-2 md:grid-cols-2">
-                <input
-                  type="text"
-                  value={editingDurationMinutes}
-                  onChange={(event) => onEditingMinutesChange(event.target.value)}
-                  onBlur={commitEditingMinutes}
-                  onKeyDown={(event) => {
-                    if (event.key !== 'Enter') return
-                    event.preventDefault()
-                    commitEditingMinutes()
-                  }}
-                  placeholder="Minutos (ej: 3*60)"
-                  className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
-                />
-                <input
-                  type="text"
-                  value={editingDurationHours}
-                  onChange={(event) => onEditingHoursChange(event.target.value)}
-                  placeholder="Horas"
-                  className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
-                />
+                <div>
+                  <p className="mb-1 text-xs font-medium text-slate-600">Horas</p>
+                  <input
+                    type="text"
+                    value={editingDurationHours}
+                    onChange={(event) => onEditingHoursChange(event.target.value)}
+                    placeholder="Horas"
+                    className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                  />
+                </div>
+                <div>
+                  <p className="mb-1 text-xs font-medium text-slate-600">Minutos</p>
+                  <input
+                    type="text"
+                    value={editingDurationMinutes}
+                    onChange={(event) => onEditingMinutesChange(event.target.value)}
+                    onBlur={commitEditingMinutes}
+                    onKeyDown={(event) => {
+                      if (event.key !== 'Enter') return
+                      event.preventDefault()
+                      commitEditingMinutes()
+                    }}
+                    placeholder="Minutos (ej: 3*60)"
+                    className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                  />
+                </div>
               </div>
               {editingDurationError ? (
                 <p className="text-sm text-rose-600">{editingDurationError}</p>
