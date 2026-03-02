@@ -44,7 +44,7 @@ export type AppController = {
     addSegment: () => Promise<void>
     createList: () => Promise<void>
     updateList: (todoListId: string, data: { name: string; description: string }) => Promise<void>
-    createTask: () => Promise<void>
+    createTask: (durationMinutes: number) => Promise<void>
     updateTask: (
       taskId: string,
       data: { title: string; description: string; durationMinutes: number },

@@ -272,6 +272,7 @@ export const taskPlanningUseCasesAppSpec = async () => {
     todoListId: overflowList.id,
     actorUserId: 1,
     title: 'Overflow A',
+    description: '',
     durationMinutes: 45,
   })
   const overflowB = await service.createTask({
@@ -280,6 +281,7 @@ export const taskPlanningUseCasesAppSpec = async () => {
     todoListId: overflowList.id,
     actorUserId: 1,
     title: 'Overflow B',
+    description: '',
     durationMinutes: 30,
   })
 

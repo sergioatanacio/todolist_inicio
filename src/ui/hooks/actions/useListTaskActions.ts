@@ -78,7 +78,7 @@ export const useListTaskActions = ({
     })
   }
 
-  const createTask = async () => {
+  const createTask = async (durationMinutes: number) => {
     const services = servicesRef.current
     if (!services || userId === null || !context.workspaceId || !context.projectId || !context.listId) {
       return
@@ -97,7 +97,7 @@ export const useListTaskActions = ({
           actorUserId: userId,
           title: forms.taskTitle,
           description: forms.taskDescription,
-          durationMinutes: Number(forms.taskDuration),
+          durationMinutes,
         })
         setForms.setTaskTitle('')
         setForms.setTaskDescription('')
