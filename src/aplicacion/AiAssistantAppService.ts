@@ -17,6 +17,7 @@ import type { AddAiUserMessageCommand } from './commands/ai/AddAiUserMessageComm
 import type { ApproveAiCommandCommand } from './commands/ai/ApproveAiCommandCommand'
 import type { CloseAiConversationCommand } from './commands/ai/CloseAiConversationCommand'
 import type { CreateAiAgentCommand } from './commands/ai/CreateAiAgentCommand'
+import type { DeleteAiAgentCommand } from './commands/ai/DeleteAiAgentCommand'
 import type { ExecuteAiCommandCommand } from './commands/ai/ExecuteAiCommandCommand'
 import type { ListTasksDueTomorrowQuery } from './commands/ai/ListTasksDueTomorrowQuery'
 import type { ProposeAiCommandCommand } from './commands/ai/ProposeAiCommandCommand'
@@ -33,6 +34,7 @@ import { AddAiUserMessageUseCase } from './use_cases/ai/AddAiUserMessageUseCase'
 import { ApproveAiCommandUseCase } from './use_cases/ai/ApproveAiCommandUseCase'
 import { CloseAiConversationUseCase } from './use_cases/ai/CloseAiConversationUseCase'
 import { CreateAiAgentUseCase } from './use_cases/ai/CreateAiAgentUseCase'
+import { DeleteAiAgentUseCase } from './use_cases/ai/DeleteAiAgentUseCase'
 import { ExecuteAiCommandUseCase } from './use_cases/ai/ExecuteAiCommandUseCase'
 import { ListTasksDueTomorrowUseCase } from './use_cases/ai/ListTasksDueTomorrowUseCase'
 import { ProposeAiCommandUseCase } from './use_cases/ai/ProposeAiCommandUseCase'
@@ -51,6 +53,7 @@ export class AiAssistantAppService {
   private readonly aiConversationRepository: AiConversationRepository
   private readonly aiUserCredentialRepository: AiUserCredentialRepository
   private readonly createAiAgentUseCase: CreateAiAgentUseCase
+  private readonly deleteAiAgentUseCase: DeleteAiAgentUseCase
   private readonly registerAiUserCredentialUseCase: RegisterAiUserCredentialUseCase
   private readonly rotateAiUserCredentialUseCase: RotateAiUserCredentialUseCase
   private readonly revokeAiUserCredentialUseCase: RevokeAiUserCredentialUseCase
@@ -92,6 +95,10 @@ export class AiAssistantAppService {
       workspaceRepository,
       unitOfWork,
       eventPublisher,
+    )
+    this.deleteAiAgentUseCase = new DeleteAiAgentUseCase(
+      aiAgentRepository,
+      unitOfWork,
     )
     this.registerAiUserCredentialUseCase = new RegisterAiUserCredentialUseCase(
       aiUserCredentialRepository,
@@ -195,6 +202,10 @@ export class AiAssistantAppService {
 
   createAgent(command: CreateAiAgentCommand) {
     return this.createAiAgentUseCase.execute(command)
+  }
+
+  deleteAgent(command: DeleteAiAgentCommand) {
+    return this.deleteAiAgentUseCase.execute(command)
   }
 
   registerUserCredential(command: RegisterAiUserCredentialCommand) {

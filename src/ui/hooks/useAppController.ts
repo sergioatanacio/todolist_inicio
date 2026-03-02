@@ -76,6 +76,7 @@ export type AppController = {
       agentId: string,
       action: 'pause' | 'activate' | 'revoke',
     ) => Promise<void>
+    deleteAiAgent: (agentId: string) => Promise<void>
     registerAiCredential: () => Promise<void>
     rotateAiCredential: () => Promise<void>
     revokeAiCredential: () => Promise<void>
@@ -681,6 +682,27 @@ export const useAppController = (): AppController => {
     }
   }
 
+  const deleteAiAgent = async (agentId: string) => {
+    const services = servicesRef.current
+    if (!services || userId === null || !context.workspaceId) return
+    setBusy(true)
+    setError('aiWorkspace', null)
+    try {
+      await services.aiAssistant.deleteAgent({
+        agentId,
+        actorUserId: userId,
+      })
+      loaders.loadAiWorkspaceContext(services, context.workspaceId, userId)
+    } catch (error) {
+      setError(
+        'aiWorkspace',
+        error instanceof Error ? error.message : 'No se pudo eliminar el agente.',
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
   const registerAiCredential = async () => {
     const services = servicesRef.current
     if (!services || userId === null || !context.workspaceId) return
@@ -947,6 +969,7 @@ export const useAppController = (): AppController => {
       changeStatus,
       createAiAgent,
       setAiAgentState,
+      deleteAiAgent,
       registerAiCredential,
       rotateAiCredential,
       revokeAiCredential,
