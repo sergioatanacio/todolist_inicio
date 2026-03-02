@@ -22,6 +22,7 @@ export type UiForms = {
   listName: string
   selectedDispId: string
   taskTitle: string
+  taskDescription: string
   taskDuration: string
   aiAgentProvider: string
   aiAgentModel: string
@@ -56,6 +57,7 @@ export type UiFormSetters = {
   setListName: (value: string) => void
   setSelectedDispId: Dispatch<SetStateAction<string>>
   setTaskTitle: (value: string) => void
+  setTaskDescription: (value: string) => void
   setTaskDuration: (value: string) => void
   setAiAgentProvider: (value: string) => void
   setAiAgentModel: (value: string) => void
@@ -90,6 +92,7 @@ export const useUiForms = (): { forms: UiForms; setForms: UiFormSetters } => {
   const [listName, setListName] = useState('')
   const [selectedDispId, setSelectedDispId] = useState('')
   const [taskTitle, setTaskTitle] = useState('')
+  const [taskDescription, setTaskDescription] = useState('')
   const [taskDuration, setTaskDuration] = useState('30')
   const [aiAgentProvider, setAiAgentProvider] = useState('openai')
   const [aiAgentModel, setAiAgentModel] = useState('gpt-5')
@@ -126,6 +129,7 @@ export const useUiForms = (): { forms: UiForms; setForms: UiFormSetters } => {
       listName,
       selectedDispId,
       taskTitle,
+      taskDescription,
       taskDuration,
       aiAgentProvider,
       aiAgentModel,
@@ -159,6 +163,7 @@ export const useUiForms = (): { forms: UiForms; setForms: UiFormSetters } => {
       setListName,
       setSelectedDispId,
       setTaskTitle,
+      setTaskDescription,
       setTaskDuration,
       setAiAgentProvider,
       setAiAgentModel,

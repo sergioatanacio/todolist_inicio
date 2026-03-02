@@ -69,7 +69,7 @@ export type AppController = {
     createTask: () => Promise<void>
     updateTask: (
       taskId: string,
-      data: { title: string; durationMinutes: number },
+      data: { title: string; description: string; durationMinutes: number },
     ) => Promise<void>
     changeStatus: (taskId: string, toStatus: TaskStatus) => Promise<void>
     createAiAgent: () => Promise<void>
@@ -593,9 +593,11 @@ export const useAppController = (): AppController => {
         todoListId: context.listId,
         actorUserId: userId,
         title: forms.taskTitle,
+        description: forms.taskDescription,
         durationMinutes: Number(forms.taskDuration),
       })
       setForms.setTaskTitle('')
+      setForms.setTaskDescription('')
       setForms.setTaskDuration('30')
       loaders.loadKanban(services, context.listId)
     } catch (error) {
@@ -607,7 +609,7 @@ export const useAppController = (): AppController => {
 
   const updateTask = async (
     taskId: string,
-    data: { title: string; durationMinutes: number },
+    data: { title: string; description: string; durationMinutes: number },
   ) => {
     const services = servicesRef.current
     if (!services || userId === null || !context.workspaceId || !context.projectId || !context.listId) {
@@ -622,6 +624,7 @@ export const useAppController = (): AppController => {
         actorUserId: userId,
         taskId,
         title: data.title,
+        description: data.description,
         durationMinutes: data.durationMinutes,
       })
       loaders.loadKanban(services, context.listId)

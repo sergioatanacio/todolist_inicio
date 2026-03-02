@@ -6,6 +6,7 @@ export type CreateTaskCommand = {
   todoListId: string
   actorUserId: number
   title: string
+  description: string
   durationMinutes?: number
 }
 
@@ -20,5 +21,6 @@ export const validateCreateTaskCommand = (
     'actorUserId',
   ),
   title: commandValidation.normalizeString(command.title, 'title'),
+  description: commandValidation.normalizeString(command.description, 'description'),
   durationMinutes: command.durationMinutes,
 })

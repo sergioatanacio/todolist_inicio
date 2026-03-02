@@ -13,6 +13,7 @@ import {
 import { TaskDuration } from '../valores_objeto/TaskDuration'
 import { TaskOrder } from '../valores_objeto/TaskOrder'
 import { type TaskStatus, isTaskStatus } from '../valores_objeto/TaskStatus'
+import { TaskDescription } from '../valores_objeto/TaskDescription'
 import { TodoText } from '../valores_objeto/TodoText'
 
 const DEFAULT_TASK_DURATION_MINUTES = 30
@@ -40,6 +41,7 @@ type TaskPrimitives = {
   todoListId: string
   orderInList?: number
   title: string
+  description?: string
   durationMinutes: number
   status: TaskStatus
   assigneeUserId: number | null
@@ -73,6 +75,7 @@ export class TaskAggregate {
   private readonly _todoListId: string
   private readonly _orderInList: TaskOrder
   private readonly _title: TodoText
+  private readonly _description: TaskDescription
   private readonly _duration: TaskDuration
   private readonly _status: TaskStatus
   private readonly _assigneeUserId: number | null
@@ -91,6 +94,7 @@ export class TaskAggregate {
     todoListId: string
     orderInList: TaskOrder
     title: TodoText
+    description: TaskDescription
     duration: TaskDuration
     status: TaskStatus
     assigneeUserId: number | null
@@ -108,6 +112,7 @@ export class TaskAggregate {
     this._todoListId = data.todoListId
     this._orderInList = data.orderInList
     this._title = data.title
+    this._description = data.description
     this._duration = data.duration
     this._status = data.status
     this._assigneeUserId = data.assigneeUserId
@@ -125,6 +130,7 @@ export class TaskAggregate {
     projectId: string
     todoListId: string
     title: string
+    description: string
     createdByUserId: number
     durationMinutes?: number
     orderInList?: number
@@ -139,6 +145,7 @@ export class TaskAggregate {
       todoListId: data.todoListId,
       orderInList: TaskOrder.create(data.orderInList ?? 1),
       title: TodoText.create(data.title),
+      description: TaskDescription.create(data.description),
       duration: TaskDuration.create(durationMinutes),
       status: 'PENDING',
       assigneeUserId: null,
@@ -226,6 +233,11 @@ export class TaskAggregate {
       todoListId: data.todoListId,
       orderInList: TaskOrder.create(data.orderInList ?? 1),
       title: TodoText.create(data.title),
+      description: TaskDescription.create(
+        typeof data.description === 'string' && data.description.trim().length > 0
+          ? data.description
+          : 'Sin descripcion',
+      ),
       duration: TaskDuration.create(data.durationMinutes),
       status: data.status,
       assigneeUserId: data.assigneeUserId,
@@ -242,6 +254,10 @@ export class TaskAggregate {
 
   rename(rawTitle: string) {
     return this.cloneWith({ title: TodoText.create(rawTitle) })
+  }
+
+  updateDescription(rawDescription: string) {
+    return this.cloneWith({ description: TaskDescription.create(rawDescription) })
   }
 
   setOrderInList(actorUserId: number, orderInList: number) {
@@ -463,6 +479,7 @@ export class TaskAggregate {
       todoListId: this._todoListId,
       orderInList: this._orderInList.value,
       title: this._title.value,
+      description: this._description.value,
       durationMinutes: this._duration.value,
       status: this._status,
       assigneeUserId: this._assigneeUserId,
@@ -480,6 +497,7 @@ export class TaskAggregate {
   private cloneWith(
     patch: Partial<{
       title: TodoText
+      description: TaskDescription
       orderInList: TaskOrder
       duration: TaskDuration
       status: TaskStatus
@@ -499,6 +517,7 @@ export class TaskAggregate {
       projectId: this._projectId,
       todoListId: this._todoListId,
       title: patch.title ?? this._title,
+      description: patch.description ?? this._description,
       orderInList: patch.orderInList ?? this._orderInList,
       duration: patch.duration ?? this._duration,
       status: patch.status ?? this._status,
@@ -545,6 +564,10 @@ export class TaskAggregate {
 
   get title() {
     return this._title.value
+  }
+
+  get description() {
+    return this._description.value
   }
 
   get orderInList() {

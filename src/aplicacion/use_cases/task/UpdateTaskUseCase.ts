@@ -43,6 +43,7 @@ export class UpdateTaskUseCase {
         task,
         {
           title: input.title,
+          description: input.description,
           durationMinutes: input.durationMinutes,
         },
         {

@@ -205,6 +205,10 @@ export class ExecuteAiCommandUseCase {
           todoListId: asString(payload, 'todoListId'),
           actorUserId: initiatorUserId,
           title: asString(payload, 'title'),
+          description:
+            typeof payload.description === 'string' && payload.description.trim().length > 0
+              ? payload.description
+              : 'Tarea creada por IA',
           durationMinutes:
             typeof payload.durationMinutes === 'number'
               ? asNumber(payload, 'durationMinutes')

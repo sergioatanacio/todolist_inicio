@@ -355,8 +355,10 @@ function App() {
       {state.route.kind === 'kanban' ? (
         <KanbanScreen
           taskTitle={forms.taskTitle}
+          taskDescription={forms.taskDescription}
           taskDuration={forms.taskDuration}
           onTaskTitleChange={setForms.setTaskTitle}
+          onTaskDescriptionChange={setForms.setTaskDescription}
           onTaskDurationChange={setForms.setTaskDuration}
           onCreateTask={() => void actions.createTask()}
           onUpdateTask={(taskId, data) => void actions.updateTask(taskId, data)}

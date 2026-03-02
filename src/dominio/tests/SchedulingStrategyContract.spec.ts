@@ -38,6 +38,7 @@ const runContract = (strategy: SchedulingStrategy) => {
     projectId: 'p-1',
     todoListId: list.id,
     title: 'A pending',
+    description: 'Task pending',
     createdByUserId: 1,
     durationMinutes: 20,
     orderInList: 1,

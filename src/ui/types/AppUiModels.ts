@@ -43,6 +43,7 @@ export type TodoListVm = {
 export type TaskVm = {
   id: string
   title: string
+  description: string
   status: TaskStatus
   durationMinutes: number
 }

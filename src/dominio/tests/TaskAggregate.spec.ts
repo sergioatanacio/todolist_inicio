@@ -25,6 +25,7 @@ export const taskAggregateSpec = () => {
     projectId: 'p-1',
     todoListId: 'l-1',
     title: 'Implementar dominio',
+    description: 'Implementar entidades y servicios',
     createdByUserId: 1,
   })
   assert(task.durationMinutes > 0, 'Task duration must be greater than 0')

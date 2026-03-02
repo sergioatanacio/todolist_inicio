@@ -107,7 +107,7 @@ export class TaskWorkflowService {
 
   updateTask(
     task: TaskAggregate,
-    data: { title: string; durationMinutes: number },
+    data: { title: string; description: string; durationMinutes: number },
     context: WorkflowContext,
   ) {
     if (
@@ -121,6 +121,7 @@ export class TaskWorkflowService {
     }
     return task
       .rename(data.title)
+      .updateDescription(data.description)
       .changeDuration(context.actorUserId, data.durationMinutes)
   }
 

@@ -151,6 +151,7 @@ export const taskPlanningUseCasesAppSpec = async () => {
     todoListId: todoList.id,
     actorUserId: 1,
     title: 'T1',
+    description: 'Descripcion T1',
     durationMinutes: 60,
   })
   assert(created.orderInList === 1, 'First task should have order 1')
@@ -161,6 +162,7 @@ export const taskPlanningUseCasesAppSpec = async () => {
     todoListId: todoList.id,
     actorUserId: 1,
     title: 'T2',
+    description: 'Descripcion T2',
     durationMinutes: 60,
   })
   assert(created2.orderInList === 2, 'Second task should have order 2')

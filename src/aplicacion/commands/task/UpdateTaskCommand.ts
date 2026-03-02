@@ -6,6 +6,7 @@ export type UpdateTaskCommand = {
   actorUserId: number
   taskId: string
   title: string
+  description: string
   durationMinutes: number
 }
 
@@ -20,9 +21,9 @@ export const validateUpdateTaskCommand = (
   ),
   taskId: commandValidation.normalizeString(command.taskId, 'taskId'),
   title: commandValidation.normalizeString(command.title, 'title'),
+  description: commandValidation.normalizeString(command.description, 'description'),
   durationMinutes: commandValidation.ensurePositiveInteger(
     command.durationMinutes,
     'durationMinutes',
   ),
 })
-

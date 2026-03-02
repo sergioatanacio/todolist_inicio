@@ -39,6 +39,7 @@ export const taskWorkflowServiceSpec = () => {
     projectId: projectWithMember.id,
     todoListId: 'l-1',
     title: 'T',
+    description: 'Descripcion T',
     createdByUserId: 1,
   })
 

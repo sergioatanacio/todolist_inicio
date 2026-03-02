@@ -84,24 +84,28 @@ export const createAppDataLoaders = (deps: LoaderDependencies) => {
       PENDING: data.PENDING.map((task) => ({
         id: task.id,
         title: task.title,
+        description: task.description,
         status: task.status,
         durationMinutes: task.durationMinutes,
       })),
       IN_PROGRESS: data.IN_PROGRESS.map((task) => ({
         id: task.id,
         title: task.title,
+        description: task.description,
         status: task.status,
         durationMinutes: task.durationMinutes,
       })),
       DONE: data.DONE.map((task) => ({
         id: task.id,
         title: task.title,
+        description: task.description,
         status: task.status,
         durationMinutes: task.durationMinutes,
       })),
       ABANDONED: data.ABANDONED.map((task) => ({
         id: task.id,
         title: task.title,
+        description: task.description,
         status: task.status,
         durationMinutes: task.durationMinutes,
       })),

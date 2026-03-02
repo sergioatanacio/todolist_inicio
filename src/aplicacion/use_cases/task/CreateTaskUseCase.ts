@@ -55,6 +55,7 @@ export class CreateTaskUseCase {
         projectId: project.id,
         todoListId: todoList.id,
         title: input.title,
+        description: input.description,
         createdByUserId: input.actorUserId,
         durationMinutes: input.durationMinutes,
         orderInList: maxOrder + 1,

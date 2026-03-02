@@ -108,6 +108,7 @@ export const sqliteRepositoriesSpec = async () => {
     projectId: project.id,
     todoListId: list.id,
     title: 'Tarea QA',
+    description: 'Descripcion QA',
     createdByUserId: 1,
     durationMinutes: 30,
     orderInList: 1,
