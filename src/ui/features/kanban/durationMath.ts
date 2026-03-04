@@ -5,9 +5,14 @@ export type DurationEvaluation =
 const isIntegerToken = (value: string) => /^[0-9]+$/.test(value)
 const isOperatorToken = (value: string) => value === '+' || value === '-' || value === '*' || value === '/'
 
-const clampMinimumMinute = (value: number) => Math.max(1, Math.trunc(value))
+const clampLowerBound = (value: number, minValue: number) =>
+  Math.max(minValue, Math.trunc(value))
 
-export const evaluateMinutesExpression = (input: string): DurationEvaluation => {
+export const evaluateMinutesExpression = (
+  input: string,
+  options?: { minValue?: number },
+): DurationEvaluation => {
+  const minValue = options?.minValue ?? 0
   const normalized = input.replace(/\s+/g, '')
   if (normalized.length < 1) {
     return { ok: false, error: 'La duracion en minutos es obligatoria' }
@@ -47,24 +52,27 @@ export const evaluateMinutesExpression = (input: string): DurationEvaluation => 
     }
   }
 
-  return { ok: true, minutes: clampMinimumMinute(result) }
+  return { ok: true, minutes: clampLowerBound(result, minValue) }
 }
 
-export const evaluateHoursInput = (input: string): DurationEvaluation => {
+export const evaluateHoursInput = (
+  input: string,
+): { ok: true; hours: number } | { ok: false; error: string } => {
   const normalized = input.trim()
   if (!/^[0-9]+$/.test(normalized)) {
     return { ok: false, error: 'Las horas deben ser un entero no negativo' }
   }
-  const hours = Number(normalized)
-  return { ok: true, minutes: clampMinimumMinute(hours * 60) }
+  return { ok: true, hours: Number(normalized) }
 }
 
 export const normalizeDurationFromMinutes = (minutes: number) => {
-  const safeMinutes = clampMinimumMinute(minutes)
-  const hours = Math.trunc(safeMinutes / 60)
+  const safeTotalMinutes = clampLowerBound(minutes, 1)
+  const hours = Math.trunc(safeTotalMinutes / 60)
+  const minutesRemainder = safeTotalMinutes % 60
   return {
-    minutes: safeMinutes,
-    minutesText: String(safeMinutes),
+    totalMinutes: safeTotalMinutes,
+    minutes: minutesRemainder,
+    minutesText: String(minutesRemainder),
     hours,
     hoursText: String(hours),
   }

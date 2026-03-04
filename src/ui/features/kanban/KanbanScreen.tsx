@@ -258,7 +258,7 @@ export function KanbanScreen({
   onMoveTask,
 }: KanbanScreenProps) {
   const initialCreateDuration = useMemo(() => {
-    const evaluated = evaluateMinutesExpression(taskDuration)
+    const evaluated = evaluateMinutesExpression(taskDuration, { minValue: 0 })
     if (!evaluated.ok) return normalizeDurationFromMinutes(30)
     return normalizeDurationFromMinutes(evaluated.minutes)
   }, [taskDuration])
@@ -274,17 +274,6 @@ export function KanbanScreen({
   )
   const [createDurationError, setCreateDurationError] = useState<string | null>(null)
   const [menuOpenTaskId, setMenuOpenTaskId] = useState<string | null>(null)
-
-  useEffect(() => {
-    const evaluated = evaluateMinutesExpression(taskDuration)
-    if (!evaluated.ok) {
-      setCreateDurationError(evaluated.error)
-      return
-    }
-    const normalized = normalizeDurationFromMinutes(evaluated.minutes)
-    setCreateDurationHours(normalized.hoursText)
-    setCreateDurationError(null)
-  }, [taskDuration])
 
   const taskById = useMemo(() => {
     const all = Object.values(kanban).flat()
@@ -327,16 +316,22 @@ export function KanbanScreen({
   }
 
   const commitCreateMinutes = () => {
-    const evaluated = evaluateMinutesExpression(taskDuration)
-    if (!evaluated.ok) {
-      setCreateDurationError(evaluated.error)
+    const hoursEvaluated = evaluateHoursInput(createDurationHours)
+    if (!hoursEvaluated.ok) {
+      setCreateDurationError(hoursEvaluated.error)
       return null
     }
-    const normalized = normalizeDurationFromMinutes(evaluated.minutes)
+    const minutesEvaluated = evaluateMinutesExpression(taskDuration, { minValue: 0 })
+    if (!minutesEvaluated.ok) {
+      setCreateDurationError(minutesEvaluated.error)
+      return null
+    }
+    const totalMinutes = hoursEvaluated.hours * 60 + minutesEvaluated.minutes
+    const normalized = normalizeDurationFromMinutes(totalMinutes)
     onTaskDurationChange(normalized.minutesText)
     setCreateDurationHours(normalized.hoursText)
     setCreateDurationError(null)
-    return normalized.minutes
+    return normalized.totalMinutes
   }
 
   const onCreateTaskClick = () => {
@@ -347,13 +342,11 @@ export function KanbanScreen({
 
   const onCreateMinutesChange = (value: string) => {
     onTaskDurationChange(value)
-    const evaluated = evaluateMinutesExpression(value)
+    const evaluated = evaluateMinutesExpression(value, { minValue: 0 })
     if (!evaluated.ok) {
       setCreateDurationError(evaluated.error)
       return
     }
-    const normalized = normalizeDurationFromMinutes(evaluated.minutes)
-    setCreateDurationHours(normalized.hoursText)
     setCreateDurationError(null)
   }
 
@@ -364,34 +357,37 @@ export function KanbanScreen({
       setCreateDurationError(evaluated.error)
       return
     }
-    const normalized = normalizeDurationFromMinutes(evaluated.minutes)
-    onTaskDurationChange(normalized.minutesText)
-    setCreateDurationHours(normalized.hoursText)
     setCreateDurationError(null)
   }
 
   const commitEditingMinutes = () => {
-    const evaluated = evaluateMinutesExpression(editingDurationMinutes)
-    if (!evaluated.ok) {
-      setEditingDurationError(evaluated.error)
+    const hoursEvaluated = evaluateHoursInput(editingDurationHours)
+    if (!hoursEvaluated.ok) {
+      setEditingDurationError(hoursEvaluated.error)
       return null
     }
-    const normalized = normalizeDurationFromMinutes(evaluated.minutes)
+    const minutesEvaluated = evaluateMinutesExpression(editingDurationMinutes, {
+      minValue: 0,
+    })
+    if (!minutesEvaluated.ok) {
+      setEditingDurationError(minutesEvaluated.error)
+      return null
+    }
+    const totalMinutes = hoursEvaluated.hours * 60 + minutesEvaluated.minutes
+    const normalized = normalizeDurationFromMinutes(totalMinutes)
     setEditingDurationMinutes(normalized.minutesText)
     setEditingDurationHours(normalized.hoursText)
     setEditingDurationError(null)
-    return normalized.minutes
+    return normalized.totalMinutes
   }
 
   const onEditingMinutesChange = (value: string) => {
     setEditingDurationMinutes(value)
-    const evaluated = evaluateMinutesExpression(value)
+    const evaluated = evaluateMinutesExpression(value, { minValue: 0 })
     if (!evaluated.ok) {
       setEditingDurationError(evaluated.error)
       return
     }
-    const normalized = normalizeDurationFromMinutes(evaluated.minutes)
-    setEditingDurationHours(normalized.hoursText)
     setEditingDurationError(null)
   }
 
@@ -402,9 +398,6 @@ export function KanbanScreen({
       setEditingDurationError(evaluated.error)
       return
     }
-    const normalized = normalizeDurationFromMinutes(evaluated.minutes)
-    setEditingDurationMinutes(normalized.minutesText)
-    setEditingDurationHours(normalized.hoursText)
     setEditingDurationError(null)
   }
 
