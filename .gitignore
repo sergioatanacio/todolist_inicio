@@ -22,7 +22,6 @@ frontend/.env.*
 !frontend/.env.example
 
 backend/bin
-backend/.bin
 backend/.env
 backend/.env.*
 !backend/.env.example
