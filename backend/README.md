@@ -1,10 +1,24 @@
 # Backend
 
-Backend inicial en Go preparado para evolucionar hacia:
+Backend en Go orientado a clean architecture.
 
-- API HTTP para el frontend.
-- integracion con Cloud Firestore.
-- verificacion de tokens de Firebase Authentication.
-- despliegue en Cloud Run con escalado a cero.
+Capas:
 
-El entrypoint actual esta en `cmd/api`.
+- `internal/domain`: agregados, value objects, eventos, state machines y estrategias.
+- `internal/application`: casos de uso y validacion de comandos.
+- `internal/infrastructure`: adaptadores, ids, clock, persistencia y transacciones.
+- `internal/httpserver`: wiring y handlers HTTP.
+
+Patrones ya reflejados en codigo:
+
+- puertos y adaptadores,
+- aggregate root,
+- result pattern,
+- state machines,
+- strategy pattern.
+
+Slice vertical ya migrado:
+
+- `task`: agregado, eventos, maquina de estados, repositorio y caso de uso `CreateTask`.
+
+La siguiente fase es portar el resto de agregados actuales del frontend hacia estas mismas capas y reemplazar los adaptadores en memoria por Firestore y Firebase Auth.
